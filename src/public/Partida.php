@@ -214,7 +214,7 @@
                 $stmt = $db -> prepare($query);
                 $stmt ->bindParam(':carta_id', $carta_id['carta_id']);
                 $stmt->execute();
-                $result += $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $result[$carta_id['carta_id']] = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
             return $result;
 
