@@ -1,7 +1,88 @@
 <?php
     class Mazo{
 
-        public function borrarMazo($mazo_id,$usuario) {
+
+        public function tiene3Mazos($usuario_id): bool {
+            $db = (new Conexion())->getDb();
+            $query = "SELECT COUNT(*) as total FROM mazo WHERE usuario_id = :usuario_id";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(":usuario_id", $usuario_id);
+            $stmt->execute();
+            $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+            
+            return $resultado && $resultado['total'] >= 3;
+        }
+        
+        
+
+        public function darAltaMazo($usuario,$nombreMazo,$cartas): array{
+            $user = new Usuario();
+            if(!$user->estaLogueado($usuario)){
+                return [
+                    "status"=> "404",
+                    "message"=> "No esta Logueado",
+                ];
+            }
+
+            $usuarioId = $user->getIdUsuario($usuario);
+
+            if($this->tiene3Mazos($usuarioId)){
+                return [
+                    "status"=> "404",
+                    "message"=> "El usuario ya tiene 3 mazos creados"  
+                ];
+            }
+
+            // Validar cantidad de cartas y que no haya repetidas
+            if (count($cartas) > 5 || count(array_unique($cartas)) < count($cartas)) {
+                return [
+                    "status" => "400",
+                    "message" => "Debes enviar hasta 5 cartas y no deben repetirse",
+                ];
+            }
+
+            $db = (new Conexion()) -> getDb();
+
+            // Validar que todas las cartas existan
+            $in = str_repeat('?,', count($cartas) - 1) . '?';
+            //Genera una lista de signos de interrogación (?, ?, ?, ...) para usar en el IN de la consulta SQL
+            // Esto se hace en base a la cantidad de cartas recibidas, para que sea dinámico y seguro
+            $stmt = $db->prepare("SELECT id FROM carta WHERE id IN ($in)");
+            $stmt->execute($cartas);
+            $cartasExistentes = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            if (count($cartasExistentes) != count($cartas)) {
+                return [
+                    "status" => "400",
+                    "message" => "Alguna de las cartas no existe",
+                ];
+            }
+            
+            // Insertar el mazo
+            $stmt = $db->prepare("INSERT INTO mazo (usuario_id, nombre) VALUES (:usuario_id, :nombre)");
+            $stmt->bindParam(":usuario_id", $usuarioId);
+            $stmt->bindParam(":nombre", $nombreMazo);
+            $stmt->execute();
+
+            $mazoId = $db->lastInsertId();// se ejecuta y luego se inserta el id, para guardar el id del nuevo mazo
+
+            // Insertar en mazo_carta
+            $stmt = $db->prepare("INSERT INTO mazo_carta (carta_id, mazo_id, estado) VALUES (:carta_id, :mazo_id, 'en_mazo')");
+            foreach ($cartas as $cartaId) {
+                $stmt->bindValue(":carta_id", $cartaId);
+                $stmt->bindValue(":mazo_id", $mazoId);
+                $stmt->execute();
+            }
+
+            return [
+                "status" => "200",
+                "message" => "Mazo creado con éxito",
+                "mazo_id" => $mazoId,
+                "nombre" => $nombreMazo
+            ];
+        }
+        public function BajaMazo($mazo_id,$usuario) {
             $user = new Usuario();
             if($user-> estaLogueado($usuario)){
                 try{

@@ -88,6 +88,41 @@ $app->get('/usuario/obtenerInformacion', function (Request $request, Response $r
     return $response->withHeader('', 'application/json');
 });
 
+$app->post('/Mazo/AltaMazo', function (Request $request, Response $response) {
+    $datos = $request->getParsedBody();
+    
+    $usuario = $datos['usuario'] ?? null;
+    $nombreMazo = $datos['nombreMazo'] ?? null;
+    $cartas = $datos['cartas'] ?? [];
+
+    if (empty($usuario) || empty($nombreMazo) || empty($cartas)) {
+        $response->getBody()->write(json_encode([
+            'status' => 400,
+            'message' => 'Faltan datos: usuario, nombre del Mazo o Cartas'
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $mazo = new Mazo();
+    $resultado = $mazo->darAltaMazo($usuario, $nombreMazo, $cartas);
+
+    $response->getBody()->write(json_encode($resultado));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+$app->delete('/Mazo/BajaMazo', function (Request $request, Response $response) {
+    $datos = $request->getParsedBody();
+
+    $usuario = $datos['usuario'] ?? null;
+    $id_mazo = $datos['id_mazo'] ?? null;
+
+    $mazo = new Mazo();
+    $resultado = $mazo->BajaMazo($id_mazo, $usuario);
+
+    $response->getBody()->write(json_encode($resultado));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
 $app->get('/Mazo/devolverMazo/{usuario}', function (Request $request, Response $response, array $args) {
     // Obtener el parámetro de la URL
     $usuarioNombre = $args['usuario'] ?? '';

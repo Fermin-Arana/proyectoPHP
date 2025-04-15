@@ -278,7 +278,7 @@
         public function getIdUsuario($usuario):int {
             $db = (new Conexion())->getDb();
 
-            $query = "SELECT id FROM usuario WHERE usuario = ':usuario'";
+            $query = "SELECT id FROM usuario WHERE usuario = :usuario";
             $stmt = $db->prepare($query);
 
             $stmt->bindParam(':usuario', $usuario);
