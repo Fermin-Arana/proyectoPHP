@@ -1,6 +1,9 @@
 <?php 
 require_once __DIR__ . '/Partida.php';
 require_once __DIR__ .'/Conexion.php';
+require_once __DIR__ .'/Mazo.php';
+require_once __DIR__ .'/Jugada.php';
+require_once __DIR__ .'/Usuario.php';
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
@@ -10,12 +13,12 @@ require __DIR__ . '/../../vendor/autoload.php';
 $app = AppFactory::create();
 $app->addBodyParsingMiddleware(); 
 
-$app->get('/', function (Request $request, Response $response) {
+$app->get('/', function (Request $request, Response $response, $args) {
     $response->getBody()->write("Hello world!");
     return $response;
 });
 
-$app->get('/partida/jugadaServidor', function (Request $request, Response $response) {
+$app->get('/jugada/jugadaServidor', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
     $mazo_id = $data['mazo_id'];
     $partida = new Partida();
@@ -24,24 +27,29 @@ $app->get('/partida/jugadaServidor', function (Request $request, Response $respo
     return $response->withHeader('Content-Type', 'application/json');
 });
 
-$app->post('/partida/login', function (Request $request, Response $response) {
+$app->post('/Usuario/login', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
-    
+
+    if (!$data) {
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json')
+                         ->write(json_encode(['status' => 400, 'message' => 'No se recibió JSON válido']));
+    }
+
     $usuario = $data['usuario'] ?? '';
     $password = $data['password'] ?? '';
-    $partida = new Partida();
-    $result = $partida->login( $usuario, $password);
+    $usuarioModelo = new Usuario();
+    $result = $usuarioModelo->login( $usuario, $password);
 
     $response->getBody()->write(json_encode($result));
     return $response->withHeader('Content-Type', 'application/json');
 });
 
-$app->put('/partida/editarUsuario', function (Request $request, Response $response) {
+$app->put('/usuario/editarUsuario/{usuario}', function (Request $request, Response $response, array $args) {
+    $usuario = $args['usuario'];
 
     $data = $request->getParsedBody();
     $nuevoNombre = $data['nombre'] ?? null;
     $nuevoPassword = $data['password'] ?? null;
-    $usuario = $data['usuario'] ?? null;
 
     $partida = new Partida();
     $resultado = $partida->editarUsuario($usuario, $nuevoNombre, $nuevoPassword);
@@ -53,21 +61,22 @@ $app->put('/partida/editarUsuario', function (Request $request, Response $respon
 });
 
 
-$app->get('/partida/register', function (Request $request, Response $response) {
+$app->post('/Usuario/register', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
 
     $nombre = $data['nombre'] ?? '';
     $usuario = $data['usuario'] ?? '';
     $password = $data['password'] ?? '';
 
-    $partida = new Partida();
+    $partida = new Usuario();
     $result = $partida -> register($nombre, $usuario, $password);
 
-    $response -> getBody() ->write(json_encode($result));
+    $response->getBody()->write(json_encode($result));
     return $response->withHeader('Content-Type', 'application/json');
+
 });
 
-$app->get('/partida/obtenerInformacion', function (Request $request, Response $response) {
+$app->get('/usuario/obtenerInformacion', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
 
     $usuario = $data['usuario'] ?? '';
@@ -76,10 +85,46 @@ $app->get('/partida/obtenerInformacion', function (Request $request, Response $r
 
     $result = $partida -> obtenerInformacion($usuario);
     $response ->getBody() ->write(json_encode($result));
+    return $response->withHeader('', 'application/json');
+});
+
+$app->get('/Mazo/devolverMazo/{usuario}', function (Request $request, Response $response, array $args) {
+    // Obtener el parámetro de la URL
+    $usuarioNombre = $args['usuario'] ?? '';
+
+    $mazo = new Mazo();
+    $result = $mazo->devolverMazo($usuarioNombre);
+
+    $response->getBody()->write(json_encode($result));
     return $response->withHeader('Content-Type', 'application/json');
 });
 
+$app->put('/Mazo/editarMazo/{mazo}', function (Request $request, Response $response, array $args) {
+    $id_mazo = $args['mazo'] ?? '';
 
+    $data = $request->getParsedBody();
+
+    $usuario = $data['usuario'] ?? '';
+    $nombre = $data['nombre'] ?? '';
+
+    if (!$usuario || !$nombre || !$id_mazo) {
+        $response->getBody()->write(json_encode([
+            'status' => 400,
+            'message' => 'Faltan datos: usuario, nombre o id_mazo'
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $mazo = new Mazo();
+    $result = $mazo->editarMazo($usuario,$nombre, $id_mazo);
+
+    $statusCode = $result['status'] ?? 200;
+
+    $response->getBody()->write(json_encode($result));
+    return $response
+        ->withHeader('Content-Type', 'application/json')
+        ->withStatus($statusCode);
+});
 
 $app->run();
 

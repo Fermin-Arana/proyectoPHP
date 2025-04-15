@@ -1,87 +1,85 @@
 <?php
     class Mazo{
-        public function getCartasMazo(int $mazo_id): array {
-            try {
+
+        public function borrarMazo($mazo_id,$usuario) {
+            $user = new Usuario();
+            if($user-> estaLogueado($usuario)){
+                try{
+                    $db = (new Conexion())->getDb();
+
+                    // Verificar si el mazo participó en una partida
+                    $stmt = $db->prepare("SELECT COUNT(*) FROM partida WHERE mazo_id = :mazo_id");
+                    $stmt->bindParam(':mazo_id', $mazo_id);
+                    $stmt->execute();
+                    $cantidad = $stmt->fetchColumn();
+
+                    if ($cantidad > 0) {
+                        throw new Exception("Este mazo ya participó de una partida y no puede borrarse.");
+                    }
+
+                    // Borrar primero de mazo_carta
+                    $stmt = $db->prepare("DELETE FROM mazo_carta WHERE mazo_id = :mazo_id");
+                    $stmt->bindParam(':mazo_id', $mazo_id);
+                    $stmt->execute();
+
+                    // Borrar el mazo
+                    $stmt = $db->prepare("DELETE FROM mazo WHERE id = :mazo_id");
+                    $stmt->bindParam(':mazo_id', $mazo_id);
+                    $stmt->execute();
+
+                    echo "Mazo borrado correctamente.";
+                }
+                catch(Exception $e){
+                    echo'Error: '.$e->getMessage();
+                }
+            } else {
+                echo "El usuario no esta logueado o el token expiró";
+            }
+        }
+
+        public function devolverMazo($usuario): array{
+            $usuarioModel = new Usuario(); 
+            if ($usuarioModel->estaLogueado($usuario)){
                 $db = (new Conexion())->getDb();
-                $query = "SELECT carta_id, estado FROM mazo_carta WHERE mazo_id = :mazo_id";
+
+                $query = "SELECT * FROM mazo WHERE usuario_id = :usuario_id";
                 $stmt = $db->prepare($query);
-                $stmt->bindValue(':mazo_id', $mazo_id, PDO::PARAM_INT);
+                $stmt->bindParam(":usuario_id", $usuario);
                 $stmt->execute();
-                $result = $stmt->fetchAll(PDO::FETCH_OBJ);
-                
-                
-                return $result ?: [];
-            } catch (PDOException $e) {
-                error_log("Error en getCartasMazo: " . $e->getMessage());
+
+                $mazos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                //echo $mazos;
+                return $mazos ?? [];
+            } else {
+                echo "El usuario no esta logueado o el token expiro";
                 return [];
             }
         }
 
-        public function cartaExisteEnMazo($mazo_id, $carta_id): bool {
-            $cartas = $this->getCartasMazo($mazo_id);
-        
-            foreach ($cartas as $carta) {
-                if ($carta->carta_id === $carta_id) {
-                    return true;
-                }
+        public function editarMazo($usuario, $nombre, $id_mazo): array{
+            $usuarioModel = new Usuario();
+            if ($usuarioModel->estaLogueado($usuario)){
+                $db = (new Conexion())->getDb();
+
+                $query = "UPDATE mazo SET nombre = :nombre WHERE usuario = :usuario AND id_mazo = :id_mazo";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(":usuario", $usuario);
+                $stmt->bindParam(":id_mazo", $id_mazo);
+                $stmt->bindParam(":nombre", $nombre);
+                $stmt->execute();
+
+                return [
+                    'status' => 200,
+                    'message' => "Mazo actualizado correctamente"
+                ];
+
+            } else {
+                return [
+                    'status' => 401,
+                    'message' => "El usuario no está logueado o el token expiró"
+                ];
             }
-        
-            return false;
         }
-        
-        public function cartaFueUsada($mazo_id, $carta_id): bool {
-            $cartas = $this->getCartasMazo($mazo_id);
-        
-            foreach ($cartas as $carta) {
-                if ($carta->carta_id === $carta_id && $carta->estado === 'descartado') {
-                    return true;
-                }
-            }
-        
-            return false;
-        }
-
-        public function actualizarEstadoCarta($carta_id, $mazo_id,$nuevo_estado):bool{
-            $db = (new Conexion())->getDb();
-
-            //hago la consulta
-            $query ="UPDATE mazo_carta SET estado =: nuevo_estado WHERE mazo_id = :mazo_id AND carta_id = :carta_id";
-
-            //preparo la consulta
-            $stmt = $db->prepare($query);
-
-            //asocio los valores 
-            $stmt->bindParam(':nuevo_estado', $nuevo_estado);
-            $stmt->bindParam(':mazo_id', $mazo_id);
-            $stmt->bindParam(':carta_id', $carta_id);
-
-            //ejecuto la consulta
-            $stmt->execute();
-
-            //verifico si se actualizo correctamente
-            if($stmt->rowCount() > 0){
-                $db = null;
-                $stmt = null;
-                return true;
-                }else{
-                    $db = null;
-                    $stmt = null;
-                    return false;
-                }
-        }
-
-        public function ultimaRonda($mazo_id):bool{
-            $cartas = $this->getCartasMazo($mazo_id);
-
-            foreach ($cartas as $carta) {
-                if ($carta['estado'] == "en_mazo"){
-                    return false;
-                }
-            }
-            return true;
-        }
-
-
 
     }
 ?>
