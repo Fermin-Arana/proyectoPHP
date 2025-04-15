@@ -2,8 +2,8 @@
 require_once __DIR__ . '/Partida.php';
 require_once __DIR__ .'/Conexion.php';
 require_once __DIR__ .'/Mazo.php';
-require_once __DIR__ .'/Jugada.php';
 require_once __DIR__ .'/Usuario.php';
+require_once __DIR__ .'/Carta.php';
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
@@ -126,6 +126,31 @@ $app->put('/Mazo/editarMazo/{mazo}', function (Request $request, Response $respo
         ->withStatus($statusCode);
 });
 
+$app->get('/Carta/listarCartas', function (Request $request, Response $response, array $args) {
+
+    $queryAtributos = $request->getQueryParams();
+
+    $nombre = $queryAtributos['nombre'] ??'';
+    $atributo = $queryAtributos['atributo'] ??'';
+
+    if (!$atributo || !$nombre) {
+        $response->getBody()->write(json_encode([
+            'status' => 400,
+            'message' => 'Faltan datos: nombre o atributo'
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $carta = new Carta();
+    $result = $carta->listarCartas($atributo, $nombre);
+
+    $statusCode = $result['status'] ?? 200;
+
+    $response->getBody()->write(json_encode($result));
+    return $response
+        ->withHeader('Content-Type', 'application/json')
+        ->withStatus($statusCode);
+});
 $app->run();
 
 ?>
