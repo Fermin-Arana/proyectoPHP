@@ -89,6 +89,57 @@ $app->get('/usuario/obtenerInformacion', function (Request $request, Response $r
     return $response->withHeader('', 'application/json');
 });
 
+$app->post('/partida/crearPartida', function (Request $request, Response $response) {
+    $data = $request->getParsedBody();
+
+    $usuario = $data['usuario'];
+    $mazo_id = $data['mazo_id'];
+
+    $partida = new Partida();
+
+    $result = $partida -> crearPartida( $usuario, $mazo_id );
+    $response -> getBody() ->write(json_encode($result));
+    return $response->withHeader('Content-Type', 'application/json');
+}); // falta probar con la parte de mazo
+
+$app->post('/partida/jugadaUsuario', function (Request $request, Response $response) {
+    $data = $request->getParsedBody();
+
+    $carta_id = $data ['carta_id'];
+    $partida_id = $data['partida_id'];
+
+    $partida = new Partida();
+
+    $result = $partida -> jugadaUsuario($carta_id, $partida_id);
+    $response ->getBody() ->write(json_encode($result));
+    return $response->withHeader('Content-Type', 'application/json');
+
+}); //falta probar con la parte de mazo
+
+$app->post('/partida/indicarAtributos', function (Request $request, Response $response) {
+    $data = $request->getParsedBody();
+
+    $mazo_id = $data ['mazo_id'];
+
+    $partida = new Partida();
+
+    $result = $partida -> indicarAtributos($mazo_id);
+    $response ->getBody() ->write(json_encode($result));
+    return $response->withHeader('Content-Type', 'application/json');
+
+});
+
+$app->get('/estadisticas/getEstadisticas', function (Request $request, Response $response) {
+    $data = $request->getParsedBody();
+
+    $estadisticas = new Estadisticas();
+
+    $result = $estadisticas -> getEstadisticas();
+    $response ->getBody() ->write(json_encode($result));
+    return $response->withHeader('Content-Type', 'application/json');
+
+});
+
 $app->post('/Mazo/AltaMazo', function (Request $request, Response $response) {
     $datos = $request->getParsedBody();
     
