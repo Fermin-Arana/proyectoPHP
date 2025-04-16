@@ -219,12 +219,15 @@
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
         
             if ($result) {
+                date_default_timezone_set('America/Argentina/Buenos_Aires');
                 $token = $result['token'];
                 $vencimiento = $result['vencimiento_token'];
                 $ahora = date('Y-m-d H:i:s');
+                $timestampVencimiento = strtotime($vencimiento);
+                $timestampAhora = strtotime($ahora);
         
                 // Verificar si el token existe y no ha expirado
-                if (!empty($token) && $vencimiento > $ahora) {
+                if (!empty($token) && $timestampVencimiento > $timestampAhora) {
                     return true;
                 }
             }
@@ -238,8 +241,14 @@
             $stmt->bindParam(':usuario_id', $usuario_id);
             $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return (string) $result['usuario'];
+            if ($result && isset($result['usuario'])) {
+                return (string)$result['usuario'];
+            }
+        
+            return "404"; 
         }
+
+
 
         public function obtenerInformacion($usuario): array{
             $db = (new Conexion())->getDb();

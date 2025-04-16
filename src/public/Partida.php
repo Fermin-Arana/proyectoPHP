@@ -76,20 +76,21 @@
             ];
         }
 
-        private function getIdMazoActual($id_partida):int{
-            $db = (new Conexion)-> getDb();
-
+        private function getIdMazoActual($id_partida): int {
+            $db = (new Conexion)->getDb();
+        
             $query = "SELECT mazo_id FROM partida WHERE id = :id_partida";
-
             $stmt = $db->prepare($query);
             $stmt->bindValue(':id_partida', $id_partida);
-
-            $stmt ->execute();
-
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            return (int)$result["id"];
+            $stmt->execute();
         
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+            if ($result && isset($result["mazo_id"])) {
+                return (int)$result["mazo_id"];
+            }
+        
+            return 0; 
         }
         private function ganaA($atributo1,$atributo2):bool{
             $db = (new Conexion)->getDb();
@@ -128,14 +129,20 @@
             return (int)$result['ataque'];
         }
 
-        private function getIdUsuario($id_partida):int{
+        private function getIdUsuario($id_partida): int {
             $db = (new Conexion)->getDb();
             $query = "SELECT usuario_id FROM partida WHERE id = :id_partida";
             $stmt = $db->prepare($query);
             $stmt->bindValue(':id_partida', $id_partida);
             $stmt->execute();
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            return (int)$result['usuario_id'];
+        
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+            if ($result && isset($result['usuario_id'])) {
+                return (int)$result['usuario_id'];
+            }
+        
+            return 0; // o podés lanzar una excepción si preferís
         }
         public function jugadaUsuario($carta_id, $id_partida){
             $mazo = (new Mazo());
@@ -214,7 +221,7 @@
                 $stmt = $db -> prepare($query);
                 $stmt ->bindParam(':carta_id', $carta_id['carta_id']);
                 $stmt->execute();
-                $result += $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $result[$carta_id['carta_id']] = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
             return $result;
 
@@ -226,7 +233,7 @@
             $query = "SELECT carta_id FROM mazo_carta WHERE mazo_id = :mazo_id AND estado = :estado";
             $stmt = $db -> prepare($query);
             $stmt ->bindParam(':mazo_id', $mazo_id);
-            $stmt ->bindParam(':estado', "en_mazo");
+            $stmt ->bindValue(':estado', "en_mazo");
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return $this -> atributosDeCartas($result);

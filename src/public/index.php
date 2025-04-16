@@ -4,6 +4,7 @@ require_once __DIR__ .'/Conexion.php';
 require_once __DIR__ .'/Mazo.php';
 require_once __DIR__ .'/Usuario.php';
 require_once __DIR__ .'/Carta.php';
+require_once __DIR__ .'/Estadisticas.php';
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
