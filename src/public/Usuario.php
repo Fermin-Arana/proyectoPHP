@@ -234,13 +234,18 @@
             return false;
         }
 
-        public function getUsuario($usuario_id):string{
+        public function getUsuario($usuario_id): string {
             $db = (new Conexion())->getDb();
             $query = "SELECT usuario FROM usuario WHERE id = :usuario_id";
             $stmt = $db->prepare($query);
             $stmt->bindParam(':usuario_id', $usuario_id);
             $stmt->execute();
+        
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
+<<<<<<< HEAD
+=======
+        
+>>>>>>> origin/ramaFer
             if ($result && isset($result['usuario'])) {
                 return (string)$result['usuario'];
             }
@@ -304,7 +309,7 @@
         public function mazoDelUsuario($usuario_id,$mazo_id):bool{
             $db = (new Conexion())->getDb();
 
-            $query = "SELECT * FROM mazo WHERE usuario_id = ':usuario_id'";
+            $query = "SELECT * FROM mazo WHERE usuario_id = :usuario_id";
 
             $stmt = $db->prepare($query);
 

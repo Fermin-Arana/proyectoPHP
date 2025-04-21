@@ -1,9 +1,14 @@
 <?php 
 require_once __DIR__ . '/Partida.php';
 require_once __DIR__ .'/Conexion.php';
+<<<<<<< HEAD
 require_once __DIR__ .'/Mazo.php';
 require_once __DIR__ .'/Usuario.php';
 require_once __DIR__ .'/Carta.php';
+=======
+require_once __DIR__ .'/Usuario.php';
+require_once __DIR__ .'/Mazo.php';
+>>>>>>> origin/ramaFer
 require_once __DIR__ .'/Estadisticas.php';
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -24,11 +29,17 @@ $app->get('/jugada/jugadaServidor', function (Request $request, Response $respon
     $mazo_id = $data['mazo_id'];
     $partida = new Partida();
     $resultado = $partida->jugadaServidor($mazo_id);
-    $response->getBody()->write(json_encode(['carta_id' => $resultado]));
-    return $response->withHeader('Content-Type', 'application/json');
-});
+    $response->getBody()->write(json_encode($resultado ['message']));
+    return $response
+        ->withStatus($resultado['status'])
+        ->withHeader('Content-Type', 'application/json');
+}); //funca
 
+<<<<<<< HEAD
 $app->post('/Usuario/login', function (Request $request, Response $response) {
+=======
+$app->post('/usuario/login', function (Request $request, Response $response) {
+>>>>>>> origin/ramaFer
     $data = $request->getParsedBody();
 
     if (!$data) {
@@ -38,37 +49,53 @@ $app->post('/Usuario/login', function (Request $request, Response $response) {
 
     $usuario = $data['usuario'] ?? '';
     $password = $data['password'] ?? '';
+<<<<<<< HEAD
     $usuarioModelo = new Usuario();
     $result = $usuarioModelo->login( $usuario, $password);
+=======
+    $usr = new Usuario();
+    $result = $usr->login( $usuario, $password);
+>>>>>>> origin/ramaFer
 
-    $response->getBody()->write(json_encode($result));
-    return $response->withHeader('Content-Type', 'application/json');
-});
+    $response->getBody()->write(json_encode($result['message']));
+    return $response
+        ->withStatus($result['status'])
+        ->withHeader('Content-Type', 'application/json');
+}); //funca
 
+<<<<<<< HEAD
 $app->put('/usuario/editarUsuario/{usuario}', function (Request $request, Response $response, array $args) {
     $usuario = $args['usuario'];
+=======
+$app->put('/usuario/editarUsuario', function (Request $request, Response $response) {
+>>>>>>> origin/ramaFer
 
     $data = $request->getParsedBody();
     $nuevoNombre = $data['nombre'] ?? null;
     $nuevoPassword = $data['password'] ?? null;
 
-    $partida = new Partida();
-    $resultado = $partida->editarUsuario($usuario, $nuevoNombre, $nuevoPassword);
+    $usr= new Usuario();
+    $resultado = $usr->editarUsuario($usuario, $nuevoNombre, $nuevoPassword);
 
     $response->getBody()->write(json_encode(['mensaje' => $resultado['message']]));
     return $response
         ->withStatus($resultado['status'])
         ->withHeader('Content-Type', 'application/json');
-});
+}); //funca
 
 
+<<<<<<< HEAD
 $app->post('/Usuario/register', function (Request $request, Response $response) {
+=======
+$app->get('/usuario/register', function (Request $request, Response $response) {
+>>>>>>> origin/ramaFer
     $data = $request->getParsedBody();
 
     $nombre = $data['nombre'] ?? '';
     $usuario = $data['usuario'] ?? '';
     $password = $data['password'] ?? '';
 
+<<<<<<< HEAD
     $partida = new Usuario();
     $result = $partida -> register($nombre, $usuario, $password);
 
@@ -76,14 +103,40 @@ $app->post('/Usuario/register', function (Request $request, Response $response) 
     return $response->withHeader('Content-Type', 'application/json');
 
 });
+=======
+    $usr = new Usuario();
+    $result = $usr -> register($nombre, $usuario, $password);
+
+    $response -> getBody() ->write(json_encode($result['message']));
+    return $response
+        ->withStatus($result['status'])
+        ->withHeader('Content-Type', 'application/json');
+}); //funca
+>>>>>>> origin/ramaFer
 
 $app->get('/usuario/obtenerInformacion', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
 
     $usuario = $data['usuario'] ?? '';
 
+    $usr = new Usuario();
+
+    $result = $usr -> obtenerInformacion($usuario);
+    $response ->getBody() ->write(json_encode($result['message']));
+    return $response
+        ->withStatus($result['status'])
+        ->withHeader('Content-Type', 'application/json');
+}); //funca
+
+$app->post('/partida/crearPartida', function (Request $request, Response $response) {
+    $data = $request->getParsedBody();
+
+    $usuario = $data['usuario'];
+    $mazo_id = $data['mazo_id'];
+
     $partida = new Partida();
 
+<<<<<<< HEAD
     $result = $partida -> obtenerInformacion($usuario);
     $response ->getBody() ->write(json_encode($result));
     return $response->withHeader('', 'application/json');
@@ -101,6 +154,14 @@ $app->post('/partida/crearPartida', function (Request $request, Response $respon
     $response -> getBody() ->write(json_encode($result));
     return $response->withHeader('Content-Type', 'application/json');
 }); // falta probar con la parte de mazo
+=======
+    $result = $partida -> crearPartida( $usuario, $mazo_id );
+    $response -> getBody() ->write(json_encode($result['message']));
+    return $response
+        ->withStatus($result['status'])
+        ->withHeader('Content-Type', 'application/json');
+}); //funca
+>>>>>>> origin/ramaFer
 
 $app->post('/partida/jugadaUsuario', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
@@ -111,10 +172,34 @@ $app->post('/partida/jugadaUsuario', function (Request $request, Response $respo
     $partida = new Partida();
 
     $result = $partida -> jugadaUsuario($carta_id, $partida_id);
+<<<<<<< HEAD
     $response ->getBody() ->write(json_encode($result));
     return $response->withHeader('Content-Type', 'application/json');
 
 }); //falta probar con la parte de mazo
+=======
+    $response ->getBody() ->write(json_encode($result['message']));
+    return $response
+        ->withStatus($result['status'])
+        ->withHeader('Content-Type', 'application/json');
+
+}); //funca
+
+$app->post('/partida/jugarPartida', function (Request $request, Response $response) {
+    $data = $request->getParsedBody();
+
+    $partida_id = $data['partida_id'];
+
+    $partida = new Partida();
+
+    $result = $partida -> jugarPartida($partida_id);
+    $response ->getBody() ->write(json_encode($result['message']));
+    return $response
+        ->withStatus($result['status'])
+        ->withHeader('Content-Type', 'application/json');
+
+}); //funca, es para probar si funcionaba la partida completa
+>>>>>>> origin/ramaFer
 
 $app->post('/partida/indicarAtributos', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
@@ -124,10 +209,19 @@ $app->post('/partida/indicarAtributos', function (Request $request, Response $re
     $partida = new Partida();
 
     $result = $partida -> indicarAtributos($mazo_id);
+<<<<<<< HEAD
     $response ->getBody() ->write(json_encode($result));
     return $response->withHeader('Content-Type', 'application/json');
 
 });
+=======
+    $response ->getBody() ->write(json_encode($result['message']));
+    return $response
+        ->withStatus($result['status'])
+        ->withHeader('Content-Type', 'application/json');
+
+}); //funca
+>>>>>>> origin/ramaFer
 
 $app->get('/estadisticas/getEstadisticas', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
@@ -135,6 +229,7 @@ $app->get('/estadisticas/getEstadisticas', function (Request $request, Response 
     $estadisticas = new Estadisticas();
 
     $result = $estadisticas -> getEstadisticas();
+<<<<<<< HEAD
     $response ->getBody() ->write(json_encode($result));
     return $response->withHeader('Content-Type', 'application/json');
 
@@ -161,6 +256,16 @@ $app->post('/Mazo/AltaMazo', function (Request $request, Response $response) {
     $response->getBody()->write(json_encode($resultado));
     return $response->withHeader('Content-Type', 'application/json');
 });
+=======
+    $response ->getBody() ->write(json_encode($result['message']));
+    return $response
+        ->withStatus($result['status'])
+        ->withHeader('Content-Type', 'application/json');
+
+}); //funca
+
+
+>>>>>>> origin/ramaFer
 
 $app->delete('/Mazo/BajaMazo', function (Request $request, Response $response) {
     $datos = $request->getParsedBody();
