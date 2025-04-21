@@ -9,14 +9,12 @@ class Conexion {
 
     public function conectar() {
         try {
-            echo "Intentando conectar...\n"; // <-- Agrega esto para depurar
             $this->pdo = new PDO(
                 "mysql:host={$this->host};dbname={$this->db};charset={$this->charset}",
                 $this->user,
                 $this->pass
             );
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            echo "Conexion exitosa!\n"; // <-- Mensaje de confirmacion
         } catch (PDOException $e) {
             die("Error de conexion: " . $e->getMessage());
         }

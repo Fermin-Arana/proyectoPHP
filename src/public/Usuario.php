@@ -219,26 +219,35 @@
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
         
             if ($result) {
+                date_default_timezone_set('America/Argentina/Buenos_Aires');
                 $token = $result['token'];
                 $vencimiento = $result['vencimiento_token'];
                 $ahora = date('Y-m-d H:i:s');
+                $timestampVencimiento = strtotime($vencimiento);
+                $timestampAhora = strtotime($ahora);
         
                 // Verificar si el token existe y no ha expirado
-                if (!empty($token) && $vencimiento > $ahora) {
+                if (!empty($token) && $timestampVencimiento > $timestampAhora) {
                     return true;
                 }
             }
             return false;
         }
 
-        public function getUsuario($usuario_id):string{
+        public function getUsuario($usuario_id): string {
             $db = (new Conexion())->getDb();
             $query = "SELECT usuario FROM usuario WHERE id = :usuario_id";
             $stmt = $db->prepare($query);
             $stmt->bindParam(':usuario_id', $usuario_id);
             $stmt->execute();
+        
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return (string) $result['usuario'];
+        
+            if ($result && isset($result['usuario'])) {
+                return (string)$result['usuario'];
+            }
+        
+            return "404"; 
         }
 
         public function obtenerInformacion($usuario): array{
@@ -278,7 +287,7 @@
         public function getIdUsuario($usuario):int {
             $db = (new Conexion())->getDb();
 
-            $query = "SELECT id FROM usuario WHERE usuario = ':usuario'";
+            $query = "SELECT id FROM usuario WHERE usuario = :usuario";
             $stmt = $db->prepare($query);
 
             $stmt->bindParam(':usuario', $usuario);
@@ -295,7 +304,7 @@
         public function mazoDelUsuario($usuario_id,$mazo_id):bool{
             $db = (new Conexion())->getDb();
 
-            $query = "SELECT * FROM mazo WHERE usuario_id = ':usuario_id'";
+            $query = "SELECT * FROM mazo WHERE usuario_id = :usuario_id";
 
             $stmt = $db->prepare($query);
 

@@ -1,15 +1,21 @@
 <?php
     class Partida{
-        public function jugadaServidor():int{
+        public function jugadaServidor(){
             $db = (new Conexion())->getDb();
             $mazo =(new Mazo());
             $cartas_servidor = $mazo->getCartasMazo(1);
             foreach($cartas_servidor as $carta){
-                if(!$mazo ->cartaFueUsada(1,$carta["id"])){
-                    return $carta["id"];
+                if(!$mazo ->cartaFueUsada(1,$carta -> carta_id)){
+                    return [
+                        'status' => 200,
+                        'message' => $carta -> carta_id
+                    ];
                 }
             }
-            return 0;
+            return [
+                'status' => 404,
+                'message' => "Mazo incompleto"
+                ];
         }
 
         public function crearPartida($usuario, $mazo_id): array{
@@ -38,6 +44,7 @@
             }
 
             $mazo_usuario = $mazo ->getCartasMazo($mazo_id);
+            $mazo_servidor = $mazo ->getCartasMazo(1);
 
             if(!$mazo_usuario){
                 return [
@@ -51,6 +58,11 @@
                 $mazo ->actualizarEstadoCarta($id,$mazo_id,"en_mano");
             }
 
+            foreach($mazo_servidor as $carta_servidor){
+                $id_servidor = $carta_servidor -> carta_id;
+                $mazo ->actualizarEstadoCarta($id_servidor,1,"en_mano");
+            }
+
 
             $db = (new Conexion())->getDb();
 
@@ -59,9 +71,9 @@
             $stmt = $db->prepare($query);
 
             $stmt->bindParam(':usuario_id', $usuario_id);
-            $stmt->bindParam(':fecha', date('Y-m-d H:i:s'));
+            $stmt->bindValue(':fecha', date('Y-m-d H:i:s'));
             $stmt->bindParam(':mazo_id', $mazo_id);
-            $stmt->bindParam(':estado', "en_curso");
+            $stmt->bindValue(':estado', "en_curso");
 
             $stmt->execute();
 
@@ -76,20 +88,21 @@
             ];
         }
 
-        private function getIdMazoActual($id_partida):int{
-            $db = (new Conexion)-> getDb();
-
+        private function getIdMazoActual($id_partida): int {
+            $db = (new Conexion)->getDb();
+        
             $query = "SELECT mazo_id FROM partida WHERE id = :id_partida";
-
             $stmt = $db->prepare($query);
             $stmt->bindValue(':id_partida', $id_partida);
-
-            $stmt ->execute();
-
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            return (int)$result["id"];
+            $stmt->execute();
         
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+            if ($result && isset($result["mazo_id"])) {
+                return (int)$result["mazo_id"];
+            }
+        
+            return 0; 
         }
         private function ganaA($atributo1,$atributo2):bool{
             $db = (new Conexion)->getDb();
@@ -112,7 +125,7 @@
 
         }
 
-        private function getDatosCarta($carta_id):int{
+        private function getDatosCarta($carta_id){
             $db = (new Conexion)->getDb();
             
             $query = "SELECT ataque, atributo_id FROM carta WHERE id = :carta_id";
@@ -123,19 +136,25 @@
 
             $stmt->execute();
 
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $result = $stmt->fetch(PDO::FETCH_OBJ);
 
-            return (int)$result['ataque'];
+            return $result;
         }
 
-        private function getIdUsuario($id_partida):int{
+        private function getIdUsuario($id_partida): int {
             $db = (new Conexion)->getDb();
             $query = "SELECT usuario_id FROM partida WHERE id = :id_partida";
             $stmt = $db->prepare($query);
             $stmt->bindValue(':id_partida', $id_partida);
             $stmt->execute();
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            return (int)$result['usuario_id'];
+        
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+            if ($result && isset($result['usuario_id'])) {
+                return (int)$result['usuario_id'];
+            }
+        
+            return 0; // o podés lanzar una excepción si preferís
         }
         public function jugadaUsuario($carta_id, $id_partida){
             $mazo = (new Mazo());
@@ -161,21 +180,21 @@
             }
             $db = (new Conexion)->getDb(); 
             $id_carta_servidor = $this -> jugadaServidor();
-            $cartaUsuario = $this -> getDatosCarta($carta_id);
-            $cartaServidor = $this -> getDatosCarta($id_carta_servidor);
+            $cartaUsuario = $this -> getDatosCarta(carta_id: $carta_id);
+            $cartaServidor = $this -> getDatosCarta($id_carta_servidor['message']);
 
             
 
-            if($this -> ganaA($cartaUsuario['atributo_id'],$cartaServidor['atributo_id'])){
-                $cartaUsuario['ataque'] *= 1.30;
-            } elseif($this -> ganaA($cartaServidor['atributo_id'],$cartaUsuario['atributo_id'])){
-                $cartaServidor['ataque'] *= 1.30;
+            if($this -> ganaA($cartaUsuario -> atributo_id,$cartaServidor -> atributo_id)){
+                $cartaUsuario -> ataque *= 1.30;
+            } elseif($this -> ganaA($cartaServidor -> atributo_id,$cartaUsuario -> atributo_id)){
+                $cartaServidor -> ataque *= 1.30;
             }
 
 
-            if($cartaUsuario['ataque'] > $cartaServidor['ataque']){
+            if($cartaUsuario -> ataque > $cartaServidor -> ataque){
                 $resultado_carta = "gano";
-            } elseif($cartaUsuario['ataque'] < $cartaServidor['ataque']) {
+            } elseif($cartaUsuario -> ataque < $cartaServidor -> ataque) {
                 $resultado_carta = "perdio";
             } else {
                 $resultado_carta = "empato";
@@ -200,24 +219,78 @@
 
                 $stmt = $db -> prepare($query);
                 $stmt ->bindParam(':id_partida', $id_partida);
-                $stmt->bindParam(':estado', "finalizada");
+                $stmt->bindValue(':estado', "finalizada");
 
                 $stmt-> execute();
             }
+            return [
+                'status' => 200,
+                'message' => $resultado_carta,
+            ];
+        }  
+
+        public function jugarPartida($id_partida){
+            $mazo = new Mazo();
+            $mazo_usuario_id = $this -> getIdMazoActual($id_partida);
+            $mazo_usuario = $mazo -> getCartasMazo($mazo_usuario_id);
+
+            $cantGano = 0;
+            $cantPerdio = 0;
+            $cantEmpato = 0;
+
+            foreach ($mazo_usuario as $carta){
+                $resultado = $this -> jugadaUsuario($carta -> carta_id, $id_partida);
+                if($resultado['message'] == "gano"){
+                    $cantGano++;
+                } elseif($resultado['message'] == "perdio"){
+                    $cantPerdio++;
+                } else{
+                    $cantEmpato++;
+                }
+            }
+
+            if($cantGano >= 3){
+                $resultado_final = "gano";
+            } elseif ($cantPerdio >= 3){
+                $resultado_final = "perdio";
+            } else {
+                $resultado_final = "empato";
+            }
+            $db = (new Conexion())-> getDb();
+            $query = "UPDATE mazo_carta SET estado = :estado WHERE mazo_id = :mazo_usuario_id OR mazo_id = :mazo_servidor_id";
+            $stmt = $db -> prepare($query);
+            $stmt -> bindValue(":estado" , "en_mazo");
+            $stmt -> bindParam(":mazo_usuario_id", $mazo_usuario_id);
+            $stmt -> bindValue(":mazo_servidor_id", 1);
+            $stmt -> execute();
+
+            $query = "UPDATE partida SET el_usuario = :el_usuario WHERE id = :id_partida";
+            $stmt = $db -> prepare($query);
+            $stmt -> bindParam(":el_usuario", $resultado_final);
+            $stmt -> bindParam(":id_partida", $id_partida);
+            $stmt -> execute(); 
+
+            return [
+                'status' => 200,
+                'message' => $resultado_final,
+            ];
         }
 
-        private function atributosDeCartas(array $arreglo):array{
-            $db = (new Conexion())-> getDb();
-
-            foreach ($arreglo as $carta_id) {
+        private function atributosDeCartas($mazo_act): array {
+            $db = (new Conexion())->getDb();
+            $result = [];
+        
+            foreach ($mazo_act as $carta) {
                 $query = "SELECT atributo_id FROM carta WHERE id = :carta_id";
-                $stmt = $db -> prepare($query);
-                $stmt ->bindParam(':carta_id', $carta_id['carta_id']);
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':carta_id', $carta['carta_id']); // corregido
                 $stmt->execute();
-                $result[$carta_id['carta_id']] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $atributo = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+                $result[$carta['carta_id']] = $atributo ? $atributo['atributo_id'] : null;
             }
+        
             return $result;
-
         }
 
         public function indicarAtributos($mazo_id):array{
@@ -226,11 +299,19 @@
             $query = "SELECT carta_id FROM mazo_carta WHERE mazo_id = :mazo_id AND estado = :estado";
             $stmt = $db -> prepare($query);
             $stmt ->bindParam(':mazo_id', $mazo_id);
-            $stmt ->bindParam(':estado', "en_mazo");
+            $stmt ->bindValue(':estado', "en_mazo");
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            return $this -> atributosDeCartas($result);
-
+            if($result){
+                return [
+                    'status' => 200,
+                    'message' => $this -> atributosDeCartas($result),
+                ];
+            }
+            return [
+                'status'=> 404,
+                'message' => "no se encontro la carta"
+            ];
         }
 
 

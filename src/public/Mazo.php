@@ -1,6 +1,6 @@
 <?php
     class Mazo{
-        public function getCartasMazo(int $mazo_id): array {
+        public function getCartasMazo($mazo_id): array {
             try {
                 $db = (new Conexion())->getDb();
                 $query = "SELECT carta_id, estado FROM mazo_carta WHERE mazo_id = :mazo_id";
@@ -45,7 +45,7 @@
             $db = (new Conexion())->getDb();
 
             //hago la consulta
-            $query ="UPDATE mazo_carta SET estado =: nuevo_estado WHERE mazo_id = :mazo_id AND carta_id = :carta_id";
+            $query ="UPDATE mazo_carta SET estado = :nuevo_estado WHERE mazo_id = :mazo_id AND carta_id = :carta_id";
 
             //preparo la consulta
             $stmt = $db->prepare($query);
@@ -60,12 +60,8 @@
 
             //verifico si se actualizo correctamente
             if($stmt->rowCount() > 0){
-                $db = null;
-                $stmt = null;
                 return true;
                 }else{
-                    $db = null;
-                    $stmt = null;
                     return false;
                 }
         }
@@ -74,7 +70,7 @@
             $cartas = $this->getCartasMazo($mazo_id);
 
             foreach ($cartas as $carta) {
-                if ($carta['estado'] == "en_mazo"){
+                if ($carta ->estado == "en_mazo"){
                     return false;
                 }
             }

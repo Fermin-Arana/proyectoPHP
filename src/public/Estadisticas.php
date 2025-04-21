@@ -22,14 +22,17 @@
             $db = (new Conexion()) -> getDb();
 
             foreach($ids as $id){
-                $query = "SELECT estado FROM partida WHERE usuario_id = :usuario_id";
+                $query = "SELECT estado, el_usuario FROM partida WHERE usuario_id = :usuario_id";
                 $stmt = $db -> prepare($query);
 
                 $stmt -> bindParam(':usuario_id', $id['id'], PDO::PARAM_INT);
                 $stmt -> execute();
                 $result[$id['id']] = $stmt -> fetchAll(PDO::FETCH_ASSOC);
             }
-            return $result;
+            return [
+                'status'=> 200,
+                'message'=> ($result),
+            ];
         }
     }
 
