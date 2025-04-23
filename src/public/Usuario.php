@@ -1,3 +1,4 @@
+
 <?php
     class Usuario{
         public function login($usuario,$password): array{
@@ -242,18 +243,13 @@
             $stmt->execute();
         
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-<<<<<<< HEAD
-=======
         
->>>>>>> origin/ramaFer
             if ($result && isset($result['usuario'])) {
                 return (string)$result['usuario'];
             }
         
             return "404"; 
         }
-
-
 
         public function obtenerInformacion($usuario): array{
             $db = (new Conexion())->getDb();

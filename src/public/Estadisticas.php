@@ -1,3 +1,4 @@
+
 <?php
     class Estadisticas{
         private function getIds():array{
