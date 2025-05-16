@@ -13,12 +13,12 @@ require __DIR__ . '/../../vendor/autoload.php';
 $app = AppFactory::create();
 $app->addBodyParsingMiddleware(); 
 
-$app->get('/', function (Request $request, Response $response) {
+$app->get('/', function (Request $request, Response $response, $args) {
     $response->getBody()->write("Hello world!");
     return $response;
 });
 
-$app->get('/partida/jugadaServidor', function (Request $request, Response $response) {
+$app->get('/jugada/jugadaServidor', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
     $mazo_id = $data['mazo_id'];
     $partida = new Partida();
@@ -31,7 +31,12 @@ $app->get('/partida/jugadaServidor', function (Request $request, Response $respo
 
 $app->post('/usuario/login', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
-    
+
+    if (!$data) {
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json')
+                         ->write(json_encode(['status' => 400, 'message' => 'No se recibió JSON válido']));
+    }
+
     $usuario = $data['usuario'] ?? '';
     $password = $data['password'] ?? '';
     $usr = new Usuario();
@@ -48,7 +53,6 @@ $app->put('/usuario/editarUsuario', function (Request $request, Response $respon
     $data = $request->getParsedBody();
     $nuevoNombre = $data['nombre'] ?? null;
     $nuevoPassword = $data['password'] ?? null;
-    $usuario = $data['usuario'] ?? null;
 
     $usr= new Usuario();
     $resultado = $usr->editarUsuario($usuario, $nuevoNombre, $nuevoPassword);
@@ -166,8 +170,82 @@ $app->get('/estadisticas/getEstadisticas', function (Request $request, Response 
 
 
 
+$app->delete('/Mazo/BajaMazo', function (Request $request, Response $response) {
+    $datos = $request->getParsedBody();
 
+    $usuario = $datos['usuario'] ?? null;
+    $id_mazo = $datos['id_mazo'] ?? null;
 
+    $mazo = new Mazo();
+    $resultado = $mazo->BajaMazo($id_mazo, $usuario);
+
+    $response->getBody()->write(json_encode($resultado));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+$app->get('/Mazo/devolverMazo/{usuario}', function (Request $request, Response $response, array $args) {
+    // Obtener el parámetro de la URL
+    $usuarioNombre = $args['usuario'] ?? '';
+
+    $mazo = new Mazo();
+    $result = $mazo->devolverMazo($usuarioNombre);
+
+    $response->getBody()->write(json_encode($result));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+$app->put('/Mazo/editarMazo/{mazo}', function (Request $request, Response $response, array $args) {
+    $id_mazo = $args['mazo'] ?? '';
+
+    $data = $request->getParsedBody();
+
+    $usuario = $data['usuario'] ?? '';
+    $nombre = $data['nombre'] ?? '';
+
+    if (!$usuario || !$nombre || !$id_mazo) {
+        $response->getBody()->write(json_encode([
+            'status' => 400,
+            'message' => 'Faltan datos: usuario, nombre o id_mazo'
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $mazo = new Mazo();
+    $result = $mazo->editarMazo($usuario,$nombre, $id_mazo);
+
+    $statusCode = $result['status'] ?? 200;
+
+    $response->getBody()->write(json_encode($result));
+    return $response
+        ->withHeader('Content-Type', 'application/json')
+        ->withStatus($statusCode);
+});
+
+$app->get('/Carta/listarCartas', function (Request $request, Response $response, array $args) {
+
+    $queryAtributos = $request->getQueryParams();
+
+    $nombre = $queryAtributos['nombre'] ??'';
+    $atributo = $queryAtributos['atributo'] ??'';
+
+    if (!$atributo || !$nombre) {
+        $response->getBody()->write(json_encode([
+            'status' => 400,
+            'message' => 'Faltan datos: nombre o atributo'
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $carta = new Carta();
+    $result = $carta->listarCartas($atributo, $nombre);
+
+    $statusCode = $result['status'] ?? 200;
+
+    $response->getBody()->write(json_encode($result));
+    return $response
+        ->withHeader('Content-Type', 'application/json')
+        ->withStatus($statusCode);
+});
 $app->run();
 
 ?>

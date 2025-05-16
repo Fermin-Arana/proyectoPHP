@@ -285,9 +285,7 @@
                 $stmt = $db->prepare($query);
                 $stmt->bindParam(':carta_id', $carta['carta_id']); // corregido
                 $stmt->execute();
-                $atributo = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-                $result[$carta['carta_id']] = $atributo ? $atributo['atributo_id'] : null;
+                $result[$carta['carta_id']] = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
         
             return $result;
