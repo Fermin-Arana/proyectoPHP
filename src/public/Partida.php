@@ -19,25 +19,24 @@
                 ];
         }
 
-        public function crearPartida($usuario, $mazo_id): array{
+        public function crearPartida($token, $mazo_id): array{
             $usr = (new Usuario());
             $mazo = (new Mazo());
-            if(!$usr -> estaLogueado($usuario)){
+            $usuarioLogueado = $usr ->obtenerUsuarioPorToken($token);
+            if(!$usuarioLogueado){
                 return [
                     'status'=> 401,
                     'message'=> 'El usuario no esta logueado'
                 ];
             }
-
-            $usuario_id = $usr->getIdUsuario( $usuario );
-            if($usuario_id == 0){
+            if($usuarioLogueado['id'] == 0){
                 return[
                     'status'=> 404,
                     'message'=> 'No se encontro el id del usuario'
                 ];
             }
 
-            if(!$usr -> mazoDelUsuario($usuario_id,$mazo_id)){
+            if(!$usr -> mazoDelUsuario($usuarioLogueado['id'],$mazo_id)){
                 return[
                     'status'=> 404,
                     'message'=> 'El mazo no es del usuario'
@@ -71,19 +70,19 @@
 
             $stmt = $db->prepare($query);
 
-            $stmt->bindParam(':usuario_id', $usuario_id);
+            $stmt->bindParam(':usuario_id', $usuarioLogueado['id']);
             $stmt->bindValue(':fecha', date('Y-m-d H:i:s'));
             $stmt->bindParam(':mazo_id', $mazo_id);
             $stmt->bindValue(':estado', "en_curso");
 
             $stmt->execute();
 
-            $id_partida = $db ->lastInsertId();
+            $id_partida = $db ->lastInsertId();//creo que se hace solo pero igual lo agrego
 
             return [
                 'status' => 200,
                 'id' => $id_partida,
-                [
+                'MAZO' => [
                     $mazo_usuario
                 ]
             ];
@@ -157,11 +156,12 @@
         
             return 0; // o podés lanzar una excepción si preferís
         }
-        public function jugadaUsuario($carta_id, $id_partida){
+        public function jugadaUsuario($carta_id, $id_partida,$token){
             $mazo = (new Mazo());
             $usr = (new Usuario());
+            $usuarioLogueado = $usr ->obtenerUsuarioPorToken($token);
             $mazo_id = $this ->getIdMazoActual($id_partida);
-            if(!$usr ->estaLogueado($usr -> getUsuario($this ->getIdUsuario($id_partida)))){
+            if(!$usuarioLogueado){
                 return [
                     'status' => 401,
                     'message' => 'El usuario no esta logueado'
@@ -180,7 +180,7 @@
                 ];
             }
             $db = (new Conexion)->getDb(); 
-            $id_carta_servidor = $this -> jugadaServidor();
+            $id_carta_servidor = $this -> jugadaServidor() ;
             $cartaUsuario = $this -> getDatosCarta(carta_id: $carta_id);
             $cartaServidor = $this -> getDatosCarta($id_carta_servidor['message']);
 
@@ -202,7 +202,7 @@
             }
 
             $mazo -> actualizarEstadoCarta($carta_id,$mazo_id,"descartado");
-            $mazo -> actualizarEstadoCarta($id_carta_servidor,1,"descartado");
+            $mazo -> actualizarEstadoCarta($id_carta_servidor['message'],1,"descartado");
 
             $query = "INSERT INTO jugada (partida_id, carta_id_a, carta_id_b, el_usuario) VALUES (:partida_id,:carta_id_a,:carta_id_b,:el_usuario)";
             $stmt = $db -> prepare($query);
@@ -210,7 +210,7 @@
 
             $stmt ->bindParam(':partida_id', $id_partida);
             $stmt->bindParam(':carta_id_a', $carta_id);
-            $stmt->bindParam(':carta_id_b', $id_carta_servidor);
+            $stmt->bindParam(':carta_id_b', $id_carta_servidor['message']);
             $stmt->bindParam(':el_usuario', $resultado_carta);
 
             $stmt -> execute();
@@ -223,59 +223,55 @@
                 $stmt->bindValue(':estado', "finalizada");
 
                 $stmt-> execute();
+                $resultado_partida = $this -> resultadoDeLaPartida($id_partida);
+                $query = "UPDATE partida SET el_usuario  = :el_usuario WHERE id = :id_partida";
+                $stmt = $db -> prepare($query);
+                $stmt ->bindParam(":id_partida", $id_partida);
+                $stmt->bindParam(":el_usuario", $resultado_partida);
+                $stmt->execute();
+                $query = "UPDATE mazo_carta SET estado = :estado WHERE mazo_id = :mazo_usuario_id OR mazo_id = :mazo_servidor_id";
+                $stmt = $db -> prepare($query);
+                $stmt -> bindValue(":estado" , "en_mazo");
+                $stmt -> bindParam(":mazo_usuario_id", $mazo_id);
+                $stmt -> bindValue(":mazo_servidor_id", 1);
+                $stmt -> execute();
+
             }
             return [
                 'status' => 200,
                 'message' => $resultado_carta,
             ];
-        }  
+        }
+        
+        private function resultadoDeLaPartida($id_partida): string {
+            $db = (new Conexion)->getDb();  
+        
+            $query = "SELECT el_usuario FROM jugada WHERE partida_id = :partida_id";
+        
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':partida_id', $id_partida, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            $jugadas = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-        public function jugarPartida($id_partida){
-            $mazo = new Mazo();
-            $mazo_usuario_id = $this -> getIdMazoActual($id_partida);
-            $mazo_usuario = $mazo -> getCartasMazo($mazo_usuario_id);
-
-            $cantGano = 0;
-            $cantPerdio = 0;
-            $cantEmpato = 0;
-
-            foreach ($mazo_usuario as $carta){
-                $resultado = $this -> jugadaUsuario($carta -> carta_id, $id_partida);
-                if($resultado['message'] == "gano"){
-                    $cantGano++;
-                } elseif($resultado['message'] == "perdio"){
-                    $cantPerdio++;
-                } else{
-                    $cantEmpato++;
+            $conteo = [
+                'gano' => 0,
+                'perdio' => 0,
+                'empato' => 0
+            ];
+        
+            foreach ($jugadas as $resultado) {
+                if (isset($conteo[$resultado])) {
+                    $conteo[$resultado]++;
                 }
             }
-
-            if($cantGano >= 3){
-                $resultado_final = "gano";
-            } elseif ($cantPerdio >= 3){
-                $resultado_final = "perdio";
-            } else {
-                $resultado_final = "empato";
-            }
-            $db = (new Conexion())-> getDb();
-            $query = "UPDATE mazo_carta SET estado = :estado WHERE mazo_id = :mazo_usuario_id OR mazo_id = :mazo_servidor_id";
-            $stmt = $db -> prepare($query);
-            $stmt -> bindValue(":estado" , "en_mazo");
-            $stmt -> bindParam(":mazo_usuario_id", $mazo_usuario_id);
-            $stmt -> bindValue(":mazo_servidor_id", 1);
-            $stmt -> execute();
-
-            $query = "UPDATE partida SET el_usuario = :el_usuario WHERE id = :id_partida";
-            $stmt = $db -> prepare($query);
-            $stmt -> bindParam(":el_usuario", $resultado_final);
-            $stmt -> bindParam(":id_partida", $id_partida);
-            $stmt -> execute(); 
-
-            return [
-                'status' => 200,
-                'message' => $resultado_final,
-            ];
+            $resultadoFinal = array_search(max($conteo), $conteo);
+        
+            return $resultadoFinal; 
         }
+        
+
+    
 
         private function atributosDeCartas($mazo_act): array {
             $db = (new Conexion())->getDb();

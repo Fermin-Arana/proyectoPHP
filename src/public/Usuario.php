@@ -1,74 +1,75 @@
-
 <?php
+use Firebase\JWT\JWT;
     class Usuario{
-        public function login($usuario,$password): array{
-            $db =(new Conexion()) -> getDb();
-
+        public function login($usuario, $password): array {
+            $db = (new Conexion())->getDb();
+        
             $query = "SELECT id FROM usuario WHERE usuario = :usuario AND password = :password";
-
             $stmt = $db->prepare($query);
-
             $stmt->bindParam(':usuario', $usuario);
-            $stmt->bindParam(':password', $password);
-            
-
+            $stmt->bindParam(':password', $password); 
             $stmt->execute();
-
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);        
-            
-            if($result && isset($result['id'])) {
+        
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+            if ($result && isset($result['id'])) {
                 $id = $result['id'];
                 $token = $this->nuevoToken($usuario, $id);
+        
                 if ($token) {
-                    return[
-                    'status' => 200,
-                    'token' => $token
+                    return [
+                        'status' => 200,
+                        'message' => [
+                            'token' => $token,
+                            'usuario' => $usuario,
+                            'id' => $id
+                        ]
                     ];
                 } else {
-                    return[
-                        'status'=> 404,
-                        'message'=> "el usuario existe pero no se pudo generar el token"
+                    return [
+                        'status' => 500,
+                        'message' => "El usuario existe pero no se pudo generar el token."
                     ];
                 }
             }
-            return[
-                'status'=> 404,
-                'message'=> "No se pudo generar el token o el usuario no existe."
+        
+            return [
+                'status' => 404,
+                'message' => "Usuario o contraseña incorrectos."
             ];
         }
-
+        
         public function nuevoToken($usuario, $id): ?string {
-            error_log("Entrando a nuevoToken() con usuario: $usuario y id: $id");
+            $clave_secreta = $_ENV['JWT_SECRET'] ?? 'contraseña_default';
+        
+            date_default_timezone_set('America/Argentina/Buenos_Aires');
+            $ahora = time();
+            $vencimiento = $ahora + 3600; // 1 hora
+            $fechaVencimiento = date('Y-m-d H:i:s', $vencimiento);
+        
+            $payload = [
+                'iss' => 'http://localhost:8000',
+                'aud' => 'http://localhost:8000',
+                'iat' => $ahora,
+                'nbf' => $ahora,
+                'exp' => $vencimiento,
+                'data' => [
+                    'id' => $id,
+                    'usuario' => $usuario
+                ]
+            ];
+        
+            $jwt = JWT::encode($payload, $clave_secreta, 'HS256');
+        
             $db = (new Conexion())->getDb();
-
-                do {
-                    $token = bin2hex(random_bytes(64));
+            $query = "UPDATE usuario SET token = :token, vencimiento_token = :vencimiento WHERE id = :id";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':token', $jwt);
+            $stmt->bindParam(':vencimiento', $fechaVencimiento);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
         
-                    //Verificamos si ya está en uso
-                    $query = "SELECT COUNT(*) as total FROM usuario WHERE token = :token";
-                    //Preparar consulta
-                    $stmt = $db->prepare($query);
-                    //Asociar valores
-                    $stmt->bindParam(':token', $token, PDO::PARAM_STR);
-                    //ejecutar
-                    $stmt->execute();
-                    var_dump($stmt->rowCount());
-                    //Contamos las filas
-                    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-                } while ($result['total'] > 0);  //lo repite mientras el token no sea unico
-                date_default_timezone_set('America/Argentina/Buenos_Aires');
-                $vencimiento = date('Y-m-d H:i:s', strtotime('+1 hour')); //vencimiento en 1 hora
-        
-                // Guardamos el token
-                $update = "UPDATE usuario SET token = :token, vencimiento_token = :vencimiento WHERE id = :id AND usuario = :usuario";
-                $stmt = $db->prepare($update);
-                $stmt->bindParam(':token', $token);
-                $stmt->bindParam(':usuario', $usuario);
-                $stmt->bindParam(':vencimiento', $vencimiento);
-                $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-                $stmt->execute();
-        
-                return $token;
+            return $jwt;
         }
 
         public function verificarExistenciaUsuario($usuario): bool{
@@ -111,8 +112,9 @@
             return true;
         }
 
-        public function editarUsuario($usuario, $nombre, $password): array {
-            if (!$this->estaLogueado($usuario)) {
+        public function editarUsuario($token, $nombre, $password): array {
+            $usuarioLogueado = $this -> obtenerUsuarioPorToken($token);
+            if (!$usuarioLogueado) {
                 return [
                     'status'=> 401,
                     'message'=> "El usuario no está logueado"
@@ -143,7 +145,7 @@
         
             $stmt->bindParam(':nombre', $nombre);
             $stmt->bindParam(':password', $password);
-            $stmt->bindParam(':usuario', $usuario);
+            $stmt->bindParam(':usuario', $usuarioLogueado['usuario']);
         
             $stmt->execute();
         
@@ -206,34 +208,21 @@
             ];
         }
 
-        public function estaLogueado($usuario): bool{
-            $db = (new Conexion())->getDb();
-
-            $query = "SELECT token, vencimiento_token FROM usuario WHERE usuario = :usuario";
-
-            $stmt = $db->prepare($query);
-
-            $stmt->bindParam(':usuario', $usuario);
-
+        public function obtenerUsuarioPorToken($token) {
+            $db=(new Conexion())->getDb();
+            $query="SELECT * FROM usuario WHERE token= :token AND vencimiento_token > NOW()";
+            $stmt=$db->prepare($query);
+            $token = trim($token); //borra espacios
+            $stmt->bindParam(':token', $token);
             $stmt->execute();
-        
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-            if ($result) {
-                date_default_timezone_set('America/Argentina/Buenos_Aires');
-                $token = $result['token'];
-                $vencimiento = $result['vencimiento_token'];
-                $ahora = date('Y-m-d H:i:s');
-                $timestampVencimiento = strtotime($vencimiento);
-                $timestampAhora = strtotime($ahora);
-        
-                // Verificar si el token existe y no ha expirado
-                if (!empty($token) && $timestampVencimiento > $timestampAhora) {
-                    return true;
-                }
+            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if(!$usuario){
+                return null;
             }
-            return false;
+            return $usuario;
         }
+        
 
         public function getUsuario($usuario_id): string {
             $db = (new Conexion())->getDb();
@@ -251,38 +240,23 @@
             return "404"; 
         }
 
-        public function obtenerInformacion($usuario): array{
+        public function obtenerInformacion($token): array{
             $db = (new Conexion())->getDb();
-
-            if(!$this ->estaLogueado($usuario)){
+            $usuarioLogueado = $this->obtenerUsuarioPorToken($token);
+            if(!$usuarioLogueado){
                 return [
                     'status' => 404,
                     'message'=> 'No esta logueado'
                 ];
             }
-
-            $query = "SELECT * FROM usuario WHERE usuario = :usuario";
-
-            $stmt = $db->prepare($query);
-            $stmt->bindParam(':usuario', $usuario);
-
-            $stmt->execute();
-
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if($result){
-                return [
+            
+            return [
                     'status'=> 200,
-                    'data' => [
-                        'usuario' => $result['usuario'],
-                        'nombre' => $result['nombre']
+                    'message' => [
+                        'usuario' => $usuarioLogueado['usuario'],
+                        'nombre' => $usuarioLogueado['nombre']
                     ]
                 ];
-            }
-            return [
-                'status'=> 404,
-                'message'=> 'ERROR'
-            ];
         }
 
         public function getIdUsuario($usuario):int {
