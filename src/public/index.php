@@ -50,7 +50,7 @@ $app->post('/usuario/login', function (Request $request, Response $response) {
         ->withHeader('Content-Type', 'application/json');
 }); //funciona
 
-$app->put('/usuarios/{usuario}', function (Request $request, Response $response, array $args) {
+$app->put('/usuarios/{usuario}', function (Request $request, Response $response, array $args) {//editar Usuario
     $usuarioId = $args['usuario'];
     $data = $request->getParsedBody();
 
@@ -103,39 +103,56 @@ $app->get('/usuario/obtenerInformacion', function (Request $request, Response $r
         ->withHeader('Content-Type', 'application/json');
 }); //funciona
 
-$app->post('/partida/crearPartida', function (Request $request, Response $response) {
+$app->post('/partidas', function (Request $request, Response $response) {//Crear Partida
     $data = $request->getParsedBody();
-
     $mazo_id = $data['mazo_id'];
 
     $token = str_replace('Bearer ', '', $request->getHeaderLine('Authorization'));
 
     $partida = new Partida();
+    $result = $partida->crearPartida($token, $mazo_id);
 
-    $result = $partida -> crearPartida( $token, $mazo_id );
-    $response -> getBody() ->write(json_encode($result['id']));
+    $response->getBody()->write(json_encode($result));
+
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
-}); //funciona
+});
+//funciona
 
-$app->post('/partida/jugadaUsuario', function (Request $request, Response $response) {
+$app->post('/jugadas', function (Request $request, Response $response) {//Jugada Usuario
     $data = $request->getParsedBody();
-
     $carta_id = $data['carta_id'];
     $partida_id = $data['partida_id'];
-
     $token = str_replace('Bearer ', '', $request->getHeaderLine('Authorization'));
 
     $partida = new Partida();
+    $result = $partida->jugadaUsuario($carta_id, $partida_id, $token);
 
-    $result = $partida -> jugadaUsuario($carta_id, $partida_id, $token);
-    $response ->getBody() ->write(json_encode($result['message']));
+    if ($result['status'] !== 200) {
+        $response->getBody()->write(json_encode(['error' => $result['message']]));
+    } else {
+        $jsonResponse = [
+            'resultado' => $result['message'],
+            'carta_servidor' => [
+                'ataque' => $result['carta_servidor']->ataque
+            ],
+            'ataque_usuario' => $result['ataque_usuario'],
+            'ataque_servidor' => $result['ataque_servidor']
+        ];
+
+        if (!empty($result['partida_finalizada'])) {
+         $jsonResponse['partida_finalizada'] = $result['partida_finalizada'];
+        }
+
+
+        $response->getBody()->write(json_encode($jsonResponse));
+    }
+
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
-
-}); //funciona
+});//funciona
 
 
 $app->get('/usuarios/{usuario}/partidas/{partida}/cartas', function (Request $request, Response $response, array $args) {//Indicar Atributos

@@ -20,73 +20,87 @@
         }
 
         public function crearPartida($token, $mazo_id): array{
-            $usr = (new Usuario());
-            $mazo = (new Mazo());
-            $usuarioLogueado = $usr ->obtenerUsuarioPorToken($token);
-            if(!$usuarioLogueado){
+            $usr = new Usuario();
+            $mazo = new Mazo();
+            $usuarioLogueado = $usr->obtenerUsuarioPorToken($token);
+
+            if (!$usuarioLogueado) {
                 return [
-                    'status'=> 401,
-                    'message'=> 'El usuario no esta logueado'
-                ];
-            }
-            if($usuarioLogueado['id'] == 0){
-                return[
-                    'status'=> 404,
-                    'message'=> 'No se encontro el id del usuario'
+                    'status' => 401,
+                    'message' => 'El usuario no está logueado'
                 ];
             }
 
-            if(!$usr -> mazoDelUsuario($usuarioLogueado['id'],$mazo_id)){
-                return[
-                    'status'=> 404,
-                    'message'=> 'El mazo no es del usuario'
-                ];
-            }
-
-            $mazo_usuario = $mazo ->getCartasMazo($mazo_id);
-            $mazo_servidor = $mazo ->getCartasMazo(1);
-
-            if(!$mazo_usuario){
+            if ($usuarioLogueado['id'] == 0) {
                 return [
-                    'status'=> 404,
-                    'message' => 'El mazo esta vacio'
+                    'status' => 404,
+                    'message' => 'No se encontró el id del usuario'
                 ];
             }
 
-            foreach($mazo_usuario as $carta){
-                $id = $carta -> carta_id;
-                $mazo ->actualizarEstadoCarta($id,$mazo_id,"en_mano");
+            if (!$usr->mazoDelUsuario($usuarioLogueado['id'], $mazo_id)) {
+                return [
+                    'status' => 404,
+                    'message' => 'El mazo no es del usuario'
+                ];
             }
 
-            foreach($mazo_servidor as $carta_servidor){
-                $id_servidor = $carta_servidor -> carta_id;
-                $mazo ->actualizarEstadoCarta($id_servidor,1,"en_mano");
+            $mazo_usuario = $mazo->getCartasMazo($mazo_id);
+            $mazo_servidor = $mazo->getCartasMazo(1);
+
+            if (!$mazo_usuario) {
+                return [
+                    'status' => 404,
+                    'message' => 'El mazo está vacío'
+                ];
             }
 
-
+            // valido que no haya una partida activa previamente
             $db = (new Conexion())->getDb();
-
-            $query = "INSERT INTO partida (usuario_id,fecha,mazo_id,estado) VALUES (:usuario_id,:fecha,:mazo_id,:estado)";
-
+            $query = "SELECT * FROM partida WHERE usuario_id = :usuario_id AND estado = 'en_curso'";
             $stmt = $db->prepare($query);
+            $stmt->bindParam(':usuario_id', $usuarioLogueado['id']);
+            $stmt->execute();
+            $partidaEnCurso = $stmt->fetch();
 
+            if ($partidaEnCurso) {
+                return [
+                    'status' => 401,
+                    'message' => 'Ya existe una partida en curso para este usuario'
+                ];
+            }
+
+            // Actualizo estado de las cartas
+            foreach ($mazo_usuario as $carta) {
+                $id = $carta->carta_id;
+                $mazo->actualizarEstadoCarta($id, $mazo_id, "en_mano");
+            }
+
+            foreach ($mazo_servidor as $carta_servidor) {
+                $id_servidor = $carta_servidor->carta_id;
+                $mazo->actualizarEstadoCarta($id_servidor, 1, "en_mano");
+            }
+
+            // Creo la partida
+            $query = "INSERT INTO partida (usuario_id, fecha, mazo_id, estado) VALUES (:usuario_id, :fecha, :mazo_id, :estado)";
+            $stmt = $db->prepare($query);
             $stmt->bindParam(':usuario_id', $usuarioLogueado['id']);
             $stmt->bindValue(':fecha', date('Y-m-d H:i:s'));
             $stmt->bindParam(':mazo_id', $mazo_id);
             $stmt->bindValue(':estado', "en_curso");
-
             $stmt->execute();
 
-            $id_partida = $db ->lastInsertId();//creo que se hace solo pero igual lo agrego
+            $id_partida = $db->lastInsertId();
 
+            // respuesta final si todo sale bien
             return [
                 'status' => 200,
+                'message' => "Partida creada exitosamente",
                 'id' => $id_partida,
-                'MAZO' => [
-                    $mazo_usuario
-                ]
+                'MAZO' => $mazo_usuario
             ];
         }
+
 
         private function getIdMazoActual($id_partida): int {
             $db = (new Conexion)->getDb();
@@ -156,92 +170,101 @@
         
             return 0; // o podés lanzar una excepción si preferís
         }
-        public function jugadaUsuario($carta_id, $id_partida,$token){
-            $mazo = (new Mazo());
-            $usr = (new Usuario());
-            $usuarioLogueado = $usr ->obtenerUsuarioPorToken($token);
-            $mazo_id = $this ->getIdMazoActual($id_partida);
-            if(!$usuarioLogueado){
-                return [
-                    'status' => 401,
-                    'message' => 'El usuario no esta logueado'
-                ];
-            }
-            if(!$mazo -> cartaExisteEnMazo($mazo_id, $carta_id,)){
-                return [
-                    'status' => 404,
-                    'message' => 'Esa carta no existe en el mazo'
-                ];
-            }
-            if($mazo -> cartaFueUsada($mazo_id,$carta_id)){
-                return [
-                    'status' => 404,
-                    'message'=> 'La carta ya fue usada'
-                ];
-            }
-            $db = (new Conexion)->getDb(); 
-            $id_carta_servidor = $this -> jugadaServidor() ;
-            $cartaUsuario = $this -> getDatosCarta(carta_id: $carta_id);
-            $cartaServidor = $this -> getDatosCarta($id_carta_servidor['message']);
+        public function jugadaUsuario($carta_id, $id_partida, $token) {
+            $mazo = new Mazo();
+            $usr = new Usuario();
+            $db = (new Conexion())->getDb();
 
-            
-
-            if($this -> ganaA($cartaUsuario -> atributo_id,$cartaServidor -> atributo_id)){
-                $cartaUsuario -> ataque *= 1.30;
-            } elseif($this -> ganaA($cartaServidor -> atributo_id,$cartaUsuario -> atributo_id)){
-                $cartaServidor -> ataque *= 1.30;
+            $usuarioLogueado = $usr->obtenerUsuarioPorToken($token);
+            if (!$usuarioLogueado) {
+                return ['status' => 401, 'message' => 'El usuario no está logueado'];
             }
 
+            $mazo_id = $this->getIdMazoActual($id_partida);
 
-            if($cartaUsuario -> ataque > $cartaServidor -> ataque){
+            // Validar que la partida esté en curso
+            $stmt = $db->prepare("SELECT estado FROM partida WHERE id = :id");
+            $stmt->bindParam(":id", $id_partida);
+            $stmt->execute();
+            $estado = $stmt->fetchColumn();
+
+            if ($estado !== 'en_curso') {
+                return ['status' => 403, 'message' => 'La partida no está activa'];
+            }
+
+            // Validar que la carta pertenezca al mazo y no esté descartada
+            if (!$mazo->cartaExisteEnMazo($mazo_id, $carta_id)) {
+                return ['status' => 404, 'message' => 'La carta no pertenece al mazo del jugador'];
+            }
+            if ($mazo->cartaFueUsada($mazo_id, $carta_id)) {
+                return ['status' => 409, 'message' => 'La carta ya fue utilizada'];
+            }
+
+            // Jugada del servidor
+            $id_carta_servidor = $this->jugadaServidor();
+            $cartaUsuario = $this->getDatosCarta($carta_id);
+            $cartaServidor = $this->getDatosCarta($id_carta_servidor['message']);
+
+            // Aplicar bonificación
+            if ($this->ganaA($cartaUsuario->atributo_id, $cartaServidor->atributo_id)) {
+                $cartaUsuario->ataque *= 1.30;
+            } elseif ($this->ganaA($cartaServidor->atributo_id, $cartaUsuario->atributo_id)) {
+                $cartaServidor->ataque *= 1.30;
+            }
+
+            // Determinar resultado
+            if ($cartaUsuario->ataque > $cartaServidor->ataque) {
                 $resultado_carta = "gano";
-            } elseif($cartaUsuario -> ataque < $cartaServidor -> ataque) {
+            } elseif ($cartaUsuario->ataque < $cartaServidor->ataque) {
                 $resultado_carta = "perdio";
             } else {
                 $resultado_carta = "empato";
             }
 
-            $mazo -> actualizarEstadoCarta($carta_id,$mazo_id,"descartado");
-            $mazo -> actualizarEstadoCarta($id_carta_servidor['message'],1,"descartado");
+            // Actualizar estado de cartas
+            $mazo->actualizarEstadoCarta($carta_id, $mazo_id, "descartado");
+            $mazo->actualizarEstadoCarta($id_carta_servidor['message'], 1, "descartado");
 
-            $query = "INSERT INTO jugada (partida_id, carta_id_a, carta_id_b, el_usuario) VALUES (:partida_id,:carta_id_a,:carta_id_b,:el_usuario)";
-            $stmt = $db -> prepare($query);
-
-
-            $stmt ->bindParam(':partida_id', $id_partida);
+            // Registrar jugada
+            $query = "INSERT INTO jugada (partida_id, carta_id_a, carta_id_b, el_usuario) 
+                    VALUES (:partida_id, :carta_id_a, :carta_id_b, :el_usuario)";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':partida_id', $id_partida);
             $stmt->bindParam(':carta_id_a', $carta_id);
             $stmt->bindParam(':carta_id_b', $id_carta_servidor['message']);
             $stmt->bindParam(':el_usuario', $resultado_carta);
+            $stmt->execute();
 
-            $stmt -> execute();
-
-            if($mazo -> ultimaRonda($mazo_id)){
-                $query = "UPDATE partida SET estado = :estado WHERE id = :id_partida";
-
-                $stmt = $db -> prepare($query);
-                $stmt ->bindParam(':id_partida', $id_partida);
-                $stmt->bindValue(':estado', "finalizada");
-
-                $stmt-> execute();
-                $resultado_partida = $this -> resultadoDeLaPartida($id_partida);
-                $query = "UPDATE partida SET el_usuario  = :el_usuario WHERE id = :id_partida";
-                $stmt = $db -> prepare($query);
-                $stmt ->bindParam(":id_partida", $id_partida);
-                $stmt->bindParam(":el_usuario", $resultado_partida);
+            // Si es la 5ta jugada, finalizar partida
+            $mensaje_final = null;
+            if ($mazo->ultimaRonda($mazo_id)) {
+                // Finalizar partida
+                $resultado_partida = $this->resultadoDeLaPartida($id_partida);
+                $query = "UPDATE partida SET estado = 'finalizada', el_usuario = :el_usuario WHERE id = :id";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':el_usuario', $resultado_partida);
+                $stmt->bindParam(':id', $id_partida);
                 $stmt->execute();
-                $query = "UPDATE mazo_carta SET estado = :estado WHERE mazo_id = :mazo_usuario_id OR mazo_id = :mazo_servidor_id";
-                $stmt = $db -> prepare($query);
-                $stmt -> bindValue(":estado" , "en_mazo");
-                $stmt -> bindParam(":mazo_usuario_id", $mazo_id);
-                $stmt -> bindValue(":mazo_servidor_id", 1);
-                $stmt -> execute();
 
+                // Resetear cartas
+                $query = "UPDATE mazo_carta SET estado = 'en_mazo' WHERE mazo_id IN (:mazo_usuario, 1)";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':mazo_usuario', $mazo_id);
+                $stmt->execute();
+
+                $mensaje_final = "Partida finalizada. Resultado: $resultado_partida";
             }
+
             return [
                 'status' => 200,
                 'message' => $resultado_carta,
+                'carta_servidor' => $cartaServidor,
+                'ataque_usuario' => $cartaUsuario->ataque,
+                'ataque_servidor' => $cartaServidor->ataque,
+                'partida_finalizada' => $mensaje_final
             ];
         }
+
         
         private function resultadoDeLaPartida($id_partida): string {
             $db = (new Conexion)->getDb();  

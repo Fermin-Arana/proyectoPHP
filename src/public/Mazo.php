@@ -29,16 +29,17 @@ class Mazo {
     }
 
     public function cartaFueUsada($mazo_id, $carta_id): bool {
-        $cartas = $this->getCartasMazo($mazo_id);
-
-        foreach ($cartas as $carta) {
-            if ($carta->carta_id === $carta_id && $carta->estado === 'descartado') {
-                return true;
-            }
-        }
-
-        return false;
+        $db = (new Conexion())->getDb();
+        $query = "SELECT 1 FROM mazo_carta 
+                WHERE mazo_id = :mazo_id AND carta_id = :carta_id AND estado = 'descartado' 
+                LIMIT 1";
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':mazo_id', $mazo_id);
+        $stmt->bindParam(':carta_id', $carta_id);
+        $stmt->execute();
+        return $stmt->fetch() !== false;
     }
+
 
     public function actualizarEstadoCarta($carta_id, $mazo_id, $nuevo_estado): bool {
         $db = (new Conexion())->getDb();
@@ -54,14 +55,15 @@ class Mazo {
 
     public function ultimaRonda($mazo_id): bool {
         $db = (new Conexion())->getDb();
-        $query = 'SELECT estado FROM mazo_carta WHERE mazo_id = :mazo_id1 AND mazo_id = :mazo_id2';
+        $query = "SELECT COUNT(*) FROM mazo_carta 
+                WHERE mazo_id = :mazo_id AND estado = 'descartado'";
         $stmt = $db->prepare($query);
-        $stmt->bindParam(':mazo_id1', $mazo_id);
-        $stmt->bindValue(':mazo_id2', 1);
+        $stmt->bindParam(':mazo_id', $mazo_id);
         $stmt->execute();
-
-        return $stmt->rowCount() === 0;
+        $usadas = $stmt->fetchColumn();
+        return $usadas >= 5;
     }
+
 
     public function crearMazo($token, $cartas, $nombreMazo) {
 
