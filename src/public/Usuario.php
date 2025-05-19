@@ -246,24 +246,38 @@ use Firebase\JWT\JWT;
             return "404"; 
         }
 
-        public function obtenerInformacion($token): array{
-            $db = (new Conexion())->getDb();
-            $usuarioLogueado = $this->obtenerUsuarioPorToken($token);
-            if(!$usuarioLogueado){
+        public function obtenerInformacion($token, $usuario_id): array {
+            $usr = new Usuario();
+            $usuarioLogueado = $usr->obtenerUsuarioPorToken($token);
+
+            if (!$usuarioLogueado) {
                 return [
-                    'status' => 404,
-                    'message'=> 'No esta logueado'
+                    'status' => 401,
+                    'message' => 'El usuario no está logueado o el token expiró'
                 ];
             }
-            
-            return [
-                    'status'=> 200,
-                    'message' => [
-                        'usuario' => $usuarioLogueado['usuario'],
-                        'nombre' => $usuarioLogueado['nombre']
-                    ]
+
+            $usuario_id = (int)$usuario_id;
+            $usuarioLogueado['id'] = (int)$usuarioLogueado['id'];
+
+            if ($usuarioLogueado['id'] != $usuario_id) {
+                return [
+                    'status' => 403,
+                    'message' => 'No tiene permiso para ver esta información'
                 ];
+            }
+
+            return [
+                'status' => 200,
+                'message' => [
+                    'usuario' => $usuarioLogueado['usuario'],
+                    'nombre' => $usuarioLogueado['nombre']
+                ]
+            ];
         }
+
+
+
 
         public function getIdUsuario($usuario):int {
             $db = (new Conexion())->getDb();

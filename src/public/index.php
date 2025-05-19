@@ -89,19 +89,20 @@ $app->post('/usuario/register', function (Request $request, Response $response) 
         ->withHeader('Content-Type', 'application/json');
 }); //funciona
 
-$app->get('/usuario/obtenerInformacion', function (Request $request, Response $response) {
-    $data = $request->getParsedBody();
+$app->get('/usuarios/{usuario}', function (Request $request, Response $response, array $args) {//obtener info usuario logueado
+    $usuario_id = (int) $args['usuario'];
 
     $token = str_replace('Bearer ', '', $request->getHeaderLine('Authorization'));
 
     $usr = new Usuario();
+    $result = $usr->obtenerInformacion($token, $usuario_id);
 
-    $result = $usr -> obtenerInformacion($token);
-    $response ->getBody() ->write(json_encode($result['message']));
+    $response->getBody()->write(json_encode($result['message']));
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
-}); //funciona
+});
+ //funciona
 
 $app->post('/partidas', function (Request $request, Response $response) {//Crear Partida
     $data = $request->getParsedBody();
