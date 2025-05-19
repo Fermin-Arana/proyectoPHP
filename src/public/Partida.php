@@ -290,27 +290,110 @@
             return $result;
         }
 
-        public function indicarAtributos($mazo_id):array{
-            $db = (new Conexion())-> getDb();
-            
-            $query = "SELECT carta_id FROM mazo_carta WHERE mazo_id = :mazo_id AND estado = :estado";
-            $stmt = $db -> prepare($query);
-            $stmt ->bindParam(':mazo_id', $mazo_id);
-            $stmt ->bindValue(':estado', "en_mazo");
-            $stmt->execute();
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            if($result){
+       public function indicarAtributos($usuarioId, $partidaId, $token): array {
+            $usr = new Usuario(); 
+            $usuarioLogueado = $usr->obtenerUsuarioPorToken($token);
+
+            if (!$usuarioLogueado) {
                 return [
-                    'status' => 200,
-                    'message' => $this -> atributosDeCartas($result),
+                    'status' => 401,
+                    'message' => "El usuario no está logueado"
                 ];
             }
-            return [
-                'status'=> 404,
-                'message' => "no se encontro la carta"
-            ];
-        }
+
+            $db = (new Conexion())->getDb();
+
+            if ($usuarioId == 1) {
+                //caso del servidor
+                $consultaMazo = "SELECT mazo_id FROM partida WHERE id = :partida_id AND usuario_id = 1";
+                $stmt = $db->prepare($consultaMazo);
+                $stmt->bindParam(':partida_id', $partidaId);
+                $stmt->execute();
+
+                $mazo = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if (!$mazo) {
+                    return [
+                        'status' => 404,
+                        'message' => 'No se encontró la partida del servidor'
+                    ];
+                }
+
+                $mazoId = $mazo['mazo_id'];
+
+                // Obtener cartas en mano del mazo del servidor
+                $query = "SELECT c.id, c.nombre, c.ataque, c.ataque_nombre, c.imagen, c.atributo_id
+                        FROM mazo_carta mc
+                        JOIN carta c ON mc.carta_id = c.id
+                        WHERE mc.mazo_id = :mazo_id AND mc.estado = 'en_mano'";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':mazo_id', $mazoId);
+                $stmt->execute();
+                $cartas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if ($cartas) {
+                    return [
+                        'status' => 200,
+                        'message' => $cartas
+                    ];
+                }
+
+                return [
+                    'status' => 404,
+                    'message' => 'No se encontraron cartas en mano para la partida del servidor'
+                ];
+
+            } else {
+                // Para usuarios normales, validar que el usuario logueado sea el que pide
+                if ($usuarioLogueado['id'] != $usuarioId) {
+                    return [
+                        'status' => 403,
+                        'message' => "No tiene permiso para ver esta partida"
+                    ];
+                }
+
+                // Obtengo mazo para la partida y usuario
+                $consultaMazo = "SELECT mazo_id FROM partida WHERE id = :partida_id AND usuario_id = :usuario_id";
+                $stmt = $db->prepare($consultaMazo);
+                $stmt->bindParam(':partida_id', $partidaId);
+                $stmt->bindParam(':usuario_id', $usuarioId);
+                $stmt->execute();
+
+                $mazo = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if (!$mazo) {
+                    return [
+                        'status' => 403,
+                        'message' => 'La partida no pertenece al usuario o no existe'
+                    ];
+                }
+
+                $mazoId = $mazo['mazo_id'];
+
+                // Obtengo cartas en mano de ese mazo
+                $query = "SELECT c.id, c.nombre, c.ataque, c.ataque_nombre, c.imagen, c.atributo_id
+                        FROM mazo_carta mc
+                        JOIN carta c ON mc.carta_id = c.id
+                        WHERE mc.mazo_id = :mazo_id AND mc.estado = 'en_mano'";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':mazo_id', $mazoId);
+                $stmt->execute();
+                $cartas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if ($cartas) {
+                    return [
+                        'status' => 200,
+                        'message' => $cartas
+                    ];
+                }
+
+                return [
+                    'status' => 404,
+                    'message' => 'No se encontraron cartas en mano para esta partida'
+                ];
+            }
+        }//resolver despues
 
 
-    }
+}
 ?>

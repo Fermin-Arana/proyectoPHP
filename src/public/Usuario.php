@@ -112,48 +112,54 @@ use Firebase\JWT\JWT;
             return true;
         }
 
-        public function editarUsuario($token, $nombre, $password): array {
-            $usuarioLogueado = $this -> obtenerUsuarioPorToken($token);
+        public function editarUsuario(int $usuarioId, string $token, ?string $nombre, ?string $password): array {
+            $usuarioLogueado = $this->obtenerUsuarioPorToken($token);
+
             if (!$usuarioLogueado) {
                 return [
-                    'status'=> 401,
-                    'message'=> "El usuario no está logueado"
+                    'status' => 401,
+                    'message' => "El usuario no está logueado"
                 ];
             }
-        
+
+            if ($usuarioLogueado['id'] != $usuarioId) {
+                return [
+                    'status' => 403,
+                    'message' => "No tiene permiso para editar a otro usuario"
+                ];
+            }
+
             if (empty($nombre) || empty($password)) {
                 return [
-                    'status'=> 400,
-                    'message'=> "Nombre y contraseña son obligatorios"
+                    'status' => 400,
+                    'message' => "Nombre y contraseña son obligatorios"
                 ];
             }
-        
+
             if (!$this->verificarContraseña($password)) {
                 return [
-                    'status'=> 400,
-                    'message'=> "La clave debe tener más de 8 caracteres y ser alfanumérica con mayúsculas, minúsculas, números y símbolos"
+                    'status' => 400,
+                    'message' => "La clave debe tener más de 8 caracteres y ser alfanumérica con mayúsculas, minúsculas, números y símbolos"
                 ];
             }
-        
+
             $db = (new Conexion())->getDb();
-        
-            $query = "UPDATE usuario SET nombre = :nombre, password = :password WHERE usuario = :usuario";
-        
+
+            $query = "UPDATE usuario SET nombre = :nombre, password = :password WHERE id = :id";
+
             $stmt = $db->prepare($query);
-        
-            //$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        
             $stmt->bindParam(':nombre', $nombre);
             $stmt->bindParam(':password', $password);
-            $stmt->bindParam(':usuario', $usuarioLogueado['usuario']);
-        
+            $stmt->bindParam(':id', $usuarioId);
+
             $stmt->execute();
-        
+
             return [
                 'status' => 200,
                 'message' => "Usuario actualizado correctamente"
             ];
         }
+
         
 
         public function register($nombre,$usuario,$password): array{

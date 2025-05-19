@@ -50,16 +50,23 @@ $app->post('/usuario/login', function (Request $request, Response $response) {
         ->withHeader('Content-Type', 'application/json');
 }); //funciona
 
-$app->put('/usuario/editarUsuario', function (Request $request, Response $response) {
+$app->put('/usuarios/{usuario}', function (Request $request, Response $response, array $args) {
+    $usuarioId = $args['usuario'];
+    $data = $request->getParsedBody();
+
     $nuevoNombre = $data['nombre'] ?? null;
     $nuevoPassword = $data['password'] ?? null;
-    
+
     $token = str_replace('Bearer ', '', $request->getHeaderLine('Authorization'));
 
-    $usr= new Usuario();
-    $resultado = $usr->editarUsuario($token, $nuevoNombre, $nuevoPassword);
+    $usr = new Usuario();
+    $resultado = $usr->editarUsuario($usuarioId, $token, $nuevoNombre, $nuevoPassword);
 
-    $response->getBody()->write(json_encode([$resultado['message']]));
+    $response->getBody()->write(json_encode([
+        'status' => $resultado['status'],
+        'message' => $resultado['message']
+    ]));
+
     return $response
         ->withStatus($resultado['status'])
         ->withHeader('Content-Type', 'application/json');
@@ -131,20 +138,21 @@ $app->post('/partida/jugadaUsuario', function (Request $request, Response $respo
 }); //funciona
 
 
-$app->post('/partida/indicarAtributos', function (Request $request, Response $response) {
-    $data = $request->getParsedBody();
+$app->get('/usuarios/{usuario}/partidas/{partida}/cartas', function (Request $request, Response $response, array $args) {//Indicar Atributos
+    $usuarioId = $args['usuario'];
+    $partidaId = $args['partida'];
 
-    $mazo_id = $data ['mazo_id'];
+    $token = str_replace('Bearer ', '', $request->getHeaderLine('Authorization'));
 
     $partida = new Partida();
+    $result = $partida->indicarAtributos($usuarioId, $partidaId, $token);
 
-    $result = $partida -> indicarAtributos($mazo_id);
-    $response ->getBody() ->write(json_encode($result['message']));
+    $response->getBody()->write(json_encode($result['message']));
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
-
-}); //funciona
+});
+ //funciona
 
 $app->get('/estadisticas/getEstadisticas', function (Request $request, Response $response) {
     $data = $request->getParsedBody();

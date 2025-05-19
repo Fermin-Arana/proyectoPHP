@@ -27,5 +27,10 @@ class Conexion {
         }
         return $this->pdo;
     }
+
+    //Cierro la conexion con el servidor
+    public function cerrarConexion() {
+        $this->pdo = null; // Esto cierra la conexión
+    }
 }
 ?>

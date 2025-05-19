@@ -283,41 +283,41 @@ class Mazo {
 
 
     public function listarCartas(?string $atributo = null, ?string $nombre = null): array {//este metodo puede recibir como no parametros, por eso los envio de esa manera
-    $db = (new Conexion())->getDb();
+        $db = (new Conexion())->getDb();
 
-    
-    $query = "SELECT nombre, ataque, atributo_id FROM carta";
-    $params = [];
-    $conditions = [];
+        
+        $query = "SELECT nombre, ataque, atributo_id FROM carta";
+        $params = [];
+        $conditions = [];
 
-    // Filtros opcionales
-    if (!empty($atributo)) {
-        $conditions[] = "atributo_id = :atributo";
-        $params[':atributo'] = $atributo;
+        // Filtros opcionales
+        if (!empty($atributo)) {
+            $conditions[] = "atributo_id = :atributo";
+            $params[':atributo'] = $atributo;
+        }
+
+        if (!empty($nombre)) {
+            $conditions[] = "nombre LIKE :nombre";
+            $params[':nombre'] = '%' . $nombre . '%';
+        }
+
+        // Si hay condiciones, las agregamos al WHERE
+        if (count($conditions) > 0) {
+            $query .= ' WHERE ' . implode(' AND ', $conditions);
+        }
+
+        $stmt = $db->prepare($query);
+
+        // Pasamos los parámetros al statement
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+
+        $stmt->execute();
+        $cartas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $cartas ?? [];
     }
-
-    if (!empty($nombre)) {
-        $conditions[] = "nombre LIKE :nombre";
-        $params[':nombre'] = '%' . $nombre . '%';
-    }
-
-    // Si hay condiciones, las agregamos al WHERE
-    if (count($conditions) > 0) {
-        $query .= ' WHERE ' . implode(' AND ', $conditions);
-    }
-
-    $stmt = $db->prepare($query);
-
-    // Pasamos los parámetros al statement
-    foreach ($params as $key => $value) {
-        $stmt->bindValue($key, $value);
-    }
-
-    $stmt->execute();
-    $cartas = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    return $cartas ?? [];
-}
 
 }
 ?>
