@@ -101,8 +101,7 @@ $app->get('/usuarios/{usuario}', function (Request $request, Response $response,
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
-});
- //funciona
+});//funciona
 
 $app->post('/partidas', function (Request $request, Response $response) {//Crear Partida
     $data = $request->getParsedBody();

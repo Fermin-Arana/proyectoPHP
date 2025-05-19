@@ -314,20 +314,11 @@
         }
 
        public function indicarAtributos($usuarioId, $partidaId, $token): array {
-            $usr = new Usuario(); 
-            $usuarioLogueado = $usr->obtenerUsuarioPorToken($token);
-
-            if (!$usuarioLogueado) {
-                return [
-                    'status' => 401,
-                    'message' => "El usuario no está logueado"
-                ];
-            }
-
             $db = (new Conexion())->getDb();
 
             if ($usuarioId == 1) {
-                //caso del servidor
+                // Caso especial: servidor, no se valida token ni usuario logueado
+
                 $consultaMazo = "SELECT mazo_id FROM partida WHERE id = :partida_id AND usuario_id = 1";
                 $stmt = $db->prepare($consultaMazo);
                 $stmt->bindParam(':partida_id', $partidaId);
@@ -367,7 +358,17 @@
                 ];
 
             } else {
-                // Para usuarios normales, validar que el usuario logueado sea el que pide
+                // Para otros usuarios sí se valida token y que coincida con usuarioId
+                $usr = new Usuario();
+                $usuarioLogueado = $usr->obtenerUsuarioPorToken($token);
+
+                if (!$usuarioLogueado) {
+                    return [
+                        'status' => 401,
+                        'message' => "El usuario no está logueado"
+                    ];
+                }
+
                 if ($usuarioLogueado['id'] != $usuarioId) {
                     return [
                         'status' => 403,
@@ -415,8 +416,6 @@
                     'message' => 'No se encontraron cartas en mano para esta partida'
                 ];
             }
-        }//resolver despues
-
-
+        }
 }
 ?>
