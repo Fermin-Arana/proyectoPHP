@@ -36,7 +36,7 @@ $app->get('/partida/jugadaServidor', function (Request $request, Response $respo
         ->withHeader('Content-Type', 'application/json');
 }); //funciona
 
-$app->post('/usuario/login', function (Request $request, Response $response) {
+$app->post('/login', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
     $usuario = $data['usuario'] ?? '';
     $password = $data['password'] ?? '';
@@ -73,7 +73,7 @@ $app->put('/usuarios/{usuario}', function (Request $request, Response $response,
 }); //funciona
 
 
-$app->post('/usuario/register', function (Request $request, Response $response) {
+$app->post('/register', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
 
     $nombre = $data['nombre'] ?? '';
@@ -134,9 +134,6 @@ $app->post('/jugadas', function (Request $request, Response $response) {//Jugada
     } else {
         $jsonResponse = [
             'resultado' => $result['message'],
-            'carta_servidor' => [
-                'ataque' => $result['carta_servidor']->ataque
-            ],
             'ataque_usuario' => $result['ataque_usuario'],
             'ataque_servidor' => $result['ataque_servidor']
         ];

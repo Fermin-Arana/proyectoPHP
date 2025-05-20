@@ -313,15 +313,36 @@
             return $result;
         }
 
+       private function partidaActiva($partida_id): bool{
+            $db = (new Conexion())->getDb();
+            $query = "SELECT id FROM partida WHERE id = :id AND estado = :estado";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':id', $partida_id);
+            $stmt->bindValue(':estado', 'en_curso');
+            $stmt->execute();
+            $partida = $stmt ->fetch(PDO::FETCH_ASSOC);
+            if($partida){
+                return true;
+            }
+            return false;
+       }
+
        public function indicarAtributos($usuarioId, $partidaId, $token): array {
             $db = (new Conexion())->getDb();
 
+            if(!$this-> partidaActiva($partidaId)){
+                return [
+                        'status' => 404,
+                        'message' => 'No se encontró la partida del servidor'
+                ];
+            }
             if ($usuarioId == 1) {
                 // Caso especial: servidor, no se valida token ni usuario logueado
 
-                $consultaMazo = "SELECT mazo_id FROM partida WHERE id = :partida_id AND usuario_id = 1";
+                $consultaMazo = "SELECT carta_id FROM mazo_carta WHERE mazo_id = :mazo_id AND estado = :estado";
                 $stmt = $db->prepare($consultaMazo);
-                $stmt->bindParam(':partida_id', $partidaId);
+                $stmt->bindValue(':mazo_id', 1);
+                $stmt->bindValue(':estado', 'en_mano');
                 $stmt->execute();
 
                 $mazo = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -333,7 +354,6 @@
                     ];
                 }
 
-                $mazoId = $mazo['mazo_id'];
 
                 // Obtener cartas en mano del mazo del servidor
                 $query = "SELECT c.id, c.nombre, c.ataque, c.ataque_nombre, c.imagen, c.atributo_id
@@ -341,7 +361,7 @@
                         JOIN carta c ON mc.carta_id = c.id
                         WHERE mc.mazo_id = :mazo_id AND mc.estado = 'en_mano'";
                 $stmt = $db->prepare($query);
-                $stmt->bindParam(':mazo_id', $mazoId);
+                $stmt->bindValue(':mazo_id', 1);
                 $stmt->execute();
                 $cartas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
