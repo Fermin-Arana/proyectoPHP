@@ -1,0 +1,15 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* espacio entre logo y texto */
+  right: 0;
+}
+
+.logo{
+    display: flex;
+    left: 0;
+}
+
+.title{
+    color:blueviolet;
+}

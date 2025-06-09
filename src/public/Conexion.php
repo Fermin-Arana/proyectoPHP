@@ -22,15 +22,14 @@ class Conexion {
     
 
     public function getDb(): PDO {
-        if ($this->pdo === null) { // Verifica correctamente si la conexion no existe
+        if ($this->pdo === null) { 
             $this->conectar();
         }
         return $this->pdo;
     }
 
-    //Cierro la conexion con el servidor
     public function cerrarConexion() {
-        $this->pdo = null; // Esto cierra la conexión
+        $this->pdo = null;
     }
 }
 ?>

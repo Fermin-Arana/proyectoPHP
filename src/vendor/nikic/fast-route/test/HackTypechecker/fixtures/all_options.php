@@ -27,3 +27,4 @@ function all_options_cached(): \FastRoute\Dispatcher {
       ),
     );
 }
+
