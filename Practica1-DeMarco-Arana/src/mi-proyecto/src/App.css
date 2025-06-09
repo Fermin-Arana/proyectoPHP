@@ -1,0 +1,21 @@
+.header-container {
+  width: 100%;
+  display: flex;
+  justify-content: space-between; /* logo+title a la izquierda, nav a la derecha */
+  align-items: center;
+  padding: 0 20px; /* opcional, para no pegar a los bordes */
+  box-sizing: border-box; /* para que el padding no haga overflow */
+  background-color: white; /* o el color que quieras para el header */
+  height: 60px; /* o la altura que necesites */
+  position: fixed; /* opcional: que quede fijo en la parte superior */
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000; /* para que quede por encima de otros elementos */
+}
+
+
+
+
+
+

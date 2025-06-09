@@ -1,0 +1,10 @@
+.navbar {
+  display: flex;
+  gap: 20px;
+}
+
+.navbar a {
+  text-decoration: none;
+  color: blueviolet;
+  font-weight: 500;
+}
