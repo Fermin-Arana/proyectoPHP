@@ -1,5 +1,10 @@
 .navbar {
-  display: flex;
-  gap: 20px; 
-  right: 0;
+  position:fixed;
+  display:flex;
+  align-items:center;
+  top:0;
+  gap:10px;
+  right:0;
+  padding:10px 20px;
+  width:auto;
 }

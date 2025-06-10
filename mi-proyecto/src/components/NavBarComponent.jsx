@@ -1,15 +1,23 @@
-import "../assets/styles/NavBarComponent.css";
+// NavBarComponent.jsx
+import { Link } from 'react-router-dom'; 
+import '../assets/styles/NavBarComponent.css';
 
 const NavBarComponent = () => {
   return (
     <nav className="navbar">
-      <a href="Mazos">Mazos</a>
-      <a href="Registrarse">Registrarse</a>
-      <a href="Iniciar sesion">Iniciar sesión</a>
-      <a href="Cerrar sesion">Cerrar sesión</a>
-      <a href="Jugar partida">Jugar partida</a>
+      <Link to="/mazos">Mis Mazos</Link> {/* 🔹 Usa Link en lugar de <a> */}
+      <Link to="/jugar-partida">Jugar partida</Link>
+      <Link to="/iniciar-sesion">Iniciar sesión</Link>
+      <Link to="/registrarse">Registrarse</Link>
+      {/* Cerrar sesión podría ser un botón que llama a una función */}
+      <button onClick={cerrarSesion}>Cerrar sesión</button>
     </nav>
   );
+};
+
+const cerrarSesion = () => {
+  localStorage.removeItem('token'); 
+  window.location.href = '/';
 };
 
 export default NavBarComponent;

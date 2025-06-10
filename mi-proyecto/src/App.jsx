@@ -1,23 +1,22 @@
-import { useState } from 'react'
-import logogo from './assets/Images/iconoPagina.svg'
-import HeaderComponent from './components/HeaderComponent'
-import FooterComponent from './components/footercomponent'
-import './App.css'
-import NavBarComponent from './components/navbarcomponent'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import NavBarComponent from './components/NavBarComponent';
+import Home from './components/Home';
+import Mazos from './components/Mazos';
+import FooterComponent from './components/FooterComponent'
+import TestConnection from './components/TestConnection';
+import HeaderComponent from './components/HeaderComponent';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
   return (
-    <div>
-      <div className = "top-bar">
-        <NavBarComponent />
-        <HeaderComponent />
-      </div>
-      {/* Acá va el resto de tu app */}
+    <Router>
+      <HeaderComponent />
+      <NavBarComponent />
+      <Routes>
+        <Route path="/" element={<Home />} /> 
+        <Route path="/mazos" element={<Mazos />} />
+        <Route path="/test-backend" element={<TestConnection />} />
+      </Routes>
       <FooterComponent />
-    </div>
-  )
+    </Router>
+  );
 }
-
-export default App
