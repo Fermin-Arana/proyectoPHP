@@ -1,6 +1,6 @@
 // NavBarComponent.jsx
 import { Link } from 'react-router-dom'; 
-import '../assets/styles/NavBarComponent.css';
+import '../../assets/styles/NavBarComponent.css';
 
 const NavBarComponent = () => {
   return (

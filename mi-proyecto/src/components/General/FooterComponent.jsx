@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import "../assets/styles/FooterComponent.css"; 
+
+import '../../assets/styles/FooterComponent.css';
 
 const FooterComponent = () => {
   return (
