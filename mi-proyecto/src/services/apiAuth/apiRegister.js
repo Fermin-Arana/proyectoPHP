@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost/proyectoPHP/usuario/register'; // Asegúrate de que esta ruta coincida con tu backend
+const BASE_URL = 'http://localhost:8000/usuario/register'; // Asegúrate de que esta ruta coincida con tu backend
 
 export const register = async (nombre, usuario, password) => {
   try {
@@ -16,6 +16,8 @@ export const register = async (nombre, usuario, password) => {
     });
 
     if (!response.ok) {
+      const errorText = await response.text(); // 👈 te muestra el mensaje real
+      console.error('respuesta del servidor',errorText);
       throw new Error('Error en el registro');
     }
 

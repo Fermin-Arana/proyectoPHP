@@ -4,17 +4,17 @@ require_once __DIR__ .'/Conexion.php';
 require_once __DIR__ .'/Usuario.php';
 require_once __DIR__ .'/Mazo.php';
 require_once __DIR__ .'/Estadisticas.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
 use Tuupola\Middleware\CorsMiddleware;
 use Dotenv\Dotenv;
 
-require __DIR__ . '/../../vendor/autoload.php';
-
-header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Acces-Control-Allow-Credentials: true"); 
 
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
@@ -22,8 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 }
 
 $dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->load();
-
 $dotenv->load();
 
 $app = AppFactory::create();

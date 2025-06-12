@@ -28,9 +28,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-// Dentro de tu AuthProvider
 const register = async (nombre, usuario, password) => {
   const result = await registerService(nombre, usuario, password);
+
   if (result.token) {
     localStorage.setItem('token', result.token);
     setUser({ usuario }); // Actualiza el estado global
