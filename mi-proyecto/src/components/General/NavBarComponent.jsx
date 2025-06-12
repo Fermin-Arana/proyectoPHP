@@ -8,7 +8,7 @@ const NavBarComponent = () => {
       <Link to="/mazos">Mis Mazos</Link> {/* 🔹 Usa Link en lugar de <a> */}
       <Link to="/jugar-partida">Jugar partida</Link>
       <Link to="/iniciar-sesion">Iniciar sesión</Link>
-      <Link to="/registrarse">Registrarse</Link>
+      <Link to="/register">Registrarse</Link>
       {/* Cerrar sesión podría ser un botón que llama a una función */}
       <button onClick={cerrarSesion}>Cerrar sesión</button>
     </nav>

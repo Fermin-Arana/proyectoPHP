@@ -1,6 +1,6 @@
 
 import { useEffect } from 'react';
-import { getMazos } from '../../services/api';
+import { getMazos } from '../../services/apiMazos/apiMazo.js';
 
 export default function TestConnection() {
   useEffect(() => {

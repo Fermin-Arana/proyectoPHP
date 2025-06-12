@@ -7,10 +7,19 @@ require_once __DIR__ .'/Estadisticas.php';
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
+use Tuupola\Middleware\CorsMiddleware;
+use Dotenv\Dotenv;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-use Dotenv\Dotenv;
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
@@ -19,6 +28,19 @@ $dotenv->load();
 
 $app = AppFactory::create();
 $app->addBodyParsingMiddleware(); 
+
+$app->add(new CorsMiddleware([
+    "origin" => ["http://localhost:5173"], 
+    "methods" => ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "headers.allow" => ["Authorization", "Content-Type", "Accept"],
+    "headers.expose" => [],
+    "credentials" => true,
+    "cache" => 0,
+]));
+
+$app->options('/{routes:.+}', function ($request, $response, $args) {
+    return $response;
+});
 
 $app->get('/', function (Request $request, Response $response) {
     $response->getBody()->write("Hello world!");

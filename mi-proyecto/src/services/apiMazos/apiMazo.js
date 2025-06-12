@@ -1,4 +1,4 @@
-// src/services/api.js
+
 const BASE_URL = 'http://localhost/proyectoPHP';
 
 export const getMazos = async (token, usuarioId) => {
@@ -11,7 +11,6 @@ export const getMazos = async (token, usuarioId) => {
 };
 
 export const createMazo = async (token, data) => {
-  // data = { nombre: "Mazo1", cartas: [1, 2, 3, 4, 5] }
   const response = await fetch(`${BASE_URL}/mazos`, {
     method: 'POST',
     headers: {
@@ -22,5 +21,3 @@ export const createMazo = async (token, data) => {
   });
   return await response.json();
 };
-
-// Similar para deleteMazo y updateMazo...
