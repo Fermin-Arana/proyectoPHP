@@ -10,25 +10,23 @@ export const AuthProvider = ({ children }) => {
 
 const login = async (usuario, password) => {
   try {
-    const result = await loginService(usuario, password);
-    
-    if (typeof result !== 'string' || !result) {
-      throw new Error(result || 'Credenciales incorrectas');
+    const response = await loginService(usuario, password);
+
+    if (response && response.token) {
+      localStorage.setItem('token', response.token);
+      setToken(response.token);
+      setUser({ usuario }); 
+      return response; 
     }
 
-    // Guarda el token (asumiendo que el backend lo devuelve como string)
-    localStorage.setItem('token', result);
-    setToken(result);
-    setUser({ 
-      usuario, // Usamos el mismo nombre de usuario enviado
-      nombre: usuario // Como fallback, ya que el backend no envía el nombre
-    });
-
-    return { token: result, usuario };
+    throw new Error(response?.message || 'Credenciales incorrectas');
     
   } catch (error) {
-    console.error('Error en login:', error);
-    throw new Error(error.message || 'Error al iniciar sesión');
+    const errorMessage = error.response?.data?.message || 
+                       error.message || 
+                       'Error al iniciar sesión';
+    console.error('Error de login:', error); 
+    throw new Error(errorMessage); 
   }
 };
 

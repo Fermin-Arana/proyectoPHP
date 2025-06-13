@@ -63,12 +63,12 @@ $app->post('/usuario/login', function (Request $request, Response $response) {
 
     $usr = new Usuario();
     $result = $usr->login($usuario, $password);
-
+    
     $response->getBody()->write(json_encode($result['message']));
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
-}); //funciona
+});
 
 $app->put('/usuarios/{usuario}', function (Request $request, Response $response, array $args) {//editar Usuario
     $usuarioId = $args['usuario'];

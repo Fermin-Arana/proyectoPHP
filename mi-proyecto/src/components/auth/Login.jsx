@@ -12,16 +12,19 @@ const Login = () => {
   const { login } = useAuth(); 
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    try {
-      const result = await login(nombre, usuario, password);
-      if (result.token) navigate('/');
-    } catch (err) {
-      setError(err.message); 
+  e.preventDefault();
+  setError('');
+  try {
+    const result = await login(usuario, password);
+    // Redirige solo si no hubo error
+    if (result?.token) {
+      navigate('/home'); // Asegúrate que esta ruta existe
     }
-  };
-
+  } catch (err) {
+    // Muestra el mensaje de error limpio
+    setError(err.toString().replace('Error: ', ''));
+  }
+};
   return (
     <div className="login-container">
       <div className="login-card">

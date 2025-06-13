@@ -7,8 +7,8 @@ export const register = async (nombre, usuario, password) => {
       usuario, 
       password 
     });
-    return response.data; // Solo devuelve el mensaje directo del backend
+    return response.data; 
   } catch (error) {
-    throw error; // El interceptor de axios ya maneja el error
+    throw error; 
   }
 };
