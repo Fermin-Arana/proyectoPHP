@@ -1,5 +1,6 @@
 import { createContext, useState, useContext } from "react";
 import { register as registerService } from '../../services/apiAuth/apiRegister.js';
+import { login as loginService } from '../../services/apiAuth/apiLogin.js';
 
 const AuthContext = createContext();
 
@@ -7,40 +8,45 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token") || null);
 
-  // Función para login (guarda token en localStorage)
-  const login = async (usuario, password) => {
-    try {
-      const response = await fetch("http://localhost/proyectoPHP/usuario/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usuario, password }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        localStorage.setItem("token", data.token); // Asume que el backend devuelve un token
-        setToken(data.token);
-        setUser({ usuario }); // Guarda datos básicos del usuario
-      }
-      return data;
-    } catch (error) {
-      console.error("Error en login:", error);
-      return { error: "Error al conectar con el servidor" };
+const login = async (usuario, password) => {
+  try {
+    const result = await loginService(usuario, password);
+    
+    if (typeof result !== 'string' || !result) {
+      throw new Error(result || 'Credenciales incorrectas');
     }
-  };
 
-const register = async (nombre, usuario, password) => {
-  const result = await registerService(nombre, usuario, password);
+    // Guarda el token (asumiendo que el backend lo devuelve como string)
+    localStorage.setItem('token', result);
+    setToken(result);
+    setUser({ 
+      usuario, // Usamos el mismo nombre de usuario enviado
+      nombre: usuario // Como fallback, ya que el backend no envía el nombre
+    });
 
-  if (result.token) {
-    localStorage.setItem('token', result.token);
-    setUser({ usuario }); // Actualiza el estado global
+    return { token: result, usuario };
+    
+  } catch (error) {
+    console.error('Error en login:', error);
+    throw new Error(error.message || 'Error al iniciar sesión');
   }
-  return result;
 };
 
-// Luego lo provees en el value del Provider
+const register = async (nombre, usuario, password) => {
+  try {
+    const token = await registerService(nombre, usuario, password);
+    
+    // Asume que el backend devuelve el token directamente en el mensaje
+    localStorage.setItem('token', token);
+    setToken(token);
+    setUser({ nombre, usuario }); // Guarda los datos básicos
+    
+    return token; // Opcional: devuelve el token si lo necesitas
+  } catch (error) {
+    throw error; // Simplemente relanza el error
+  }
+};
 
-  // Función para logout
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);

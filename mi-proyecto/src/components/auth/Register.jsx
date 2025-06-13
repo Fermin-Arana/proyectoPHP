@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx'; 
+import '../../assets/styles/Register.css'; 
 
 const Register = () => {
   const [nombre, setNombre] = useState('');
@@ -8,59 +9,57 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-
   const { register } = useAuth(); 
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    try {
-      const result = await register(nombre, usuario, password);
-      
-      if (result.token) { 
-        localStorage.setItem('token', result.token);
-        navigate('/'); 
-      } else if (result.message) {
-        setError(result.message); 
-      }
-    } catch (err) {
-      setError('Error al registrar. Intenta nuevamente.');
-      console.error(err);
-    }
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
+
+  try {
+    await register(nombre, usuario, password);
+    navigate('/login'); 
+  } catch (err) {
+    setError(err.message); 
+  }
+};
 
   return (
-    <div className="register-form">
-      <h2>Registro</h2>
-      {error && <p className="error">{error}</p>}
-      
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Nombre completo"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          required
-        />
+    <div className="register-container">
+      <div className="register-card">
+        <h2 className = "nombre-registro">Registro</h2>
+        {error && <p className="error-message">{error}</p>}
         
-        <input
-          type="text"
-          placeholder="Nombre de usuario"
-          value={usuario}
-          onChange={(e) => setUsuario(e.target.value)}
-          required
-        />
-        
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        
-        <button type="submit">Registrarse</button>
-      </form>
+        <form onSubmit={handleSubmit} className="register-form">
+          <input
+            type="text"
+            placeholder="Nombre completo"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            required
+            className="form-input"
+          />
+          
+          <input
+            type="text"
+            placeholder="Nombre de usuario"
+            value={usuario}
+            onChange={(e) => setUsuario(e.target.value)}
+            required
+            className="form-input"
+          />
+          
+          <input
+            type="password"
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="form-input"
+          />
+          
+          <button type="submit" className="submit-button">Registrarse</button>
+        </form>
+      </div>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import '../../assets/styles/HeaderComponent.css'
 import logogo from "../../assets/images/iconoPagina.svg";
-import { Link } from "react-router-dom"; // Importa Link
+import { Link } from "react-router-dom"; 
 
 const HeaderComponent = () => {
   return (
@@ -8,7 +8,7 @@ const HeaderComponent = () => {
       <Link to="/">
         <img src={logogo} alt="Logo" className="logo" />
       </Link>
-      <span className="title">Milica erome</span>
+      <span className="title">Pokepage</span>
     </div>
   );
 };

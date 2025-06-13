@@ -8,7 +8,7 @@ import HeaderComponent from './components/General/HeaderComponent';
 import { AuthProvider } from "./components/context/AuthContext.jsx";
 import Register from "./components/auth/Register.jsx";
 import Login from "./components/auth/Login.jsx";
-import Cerrarsesion from "./components/auth/Logout.jsx";
+import Logout from "./components/auth/Logout.jsx";
 
 export default function App() {
   return (
@@ -22,7 +22,7 @@ export default function App() {
           <Route path="/test-backend" element={<TestConnection />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/logout" element={<Cerrarsesion />} />
+          <Route path="/logout" element={<Logout />} />
         </Routes>
         <FooterComponent />
       </AuthProvider>
