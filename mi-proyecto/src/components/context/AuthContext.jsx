@@ -1,4 +1,4 @@
-import { createContext, useState, useContext } from "react";
+import { createContext, useState, useContext, useEffect } from "react";
 import { register as registerService } from '../../services/apiAuth/apiRegister.js';
 import { login as loginService } from '../../services/apiAuth/apiLogin.js';
 
@@ -6,56 +6,95 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("token") || null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-const login = async (usuario, password) => {
-  try {
-    const response = await loginService(usuario, password);
+  // Verificar token al iniciar
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      // Aquí deberías validar el token con el backend
+      setToken(storedToken);
+      // Opcional: Obtener datos del usuario si el token es válido
+    }
+    setLoading(false);
+  }, []);
 
-    if (response && response.token) {
+  const login = async (usuario, password) => {
+    try {
+      const response = await loginService(usuario, password);
+
+      if (!response?.token) {
+        throw new Error('Respuesta inválida del servidor');
+      }
+
       localStorage.setItem('token', response.token);
       setToken(response.token);
-      setUser({ usuario }); 
-      return response; 
+      setUser({
+        id: response.id,
+        usuario: response.usuario,
+        nombre: response.nombre
+      });
+      
+      return response;
+    } catch (error) {
+      localStorage.removeItem('token');
+      setToken(null);
+      setUser(null);
+      throw new Error(error.message || 'Error durante el login');
     }
+  };
 
-    throw new Error(response?.message || 'Credenciales incorrectas');
-    
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || 
-                       error.message || 
-                       'Error al iniciar sesión';
-    console.error('Error de login:', error); 
-    throw new Error(errorMessage); 
-  }
-};
+  const register = async (nombre, usuario, password) => {
+    try {
+      const response = await registerService(nombre, usuario, password);
 
-const register = async (nombre, usuario, password) => {
-  try {
-    const token = await registerService(nombre, usuario, password);
-    
-    // Asume que el backend devuelve el token directamente en el mensaje
-    localStorage.setItem('token', token);
-    setToken(token);
-    setUser({ nombre, usuario }); // Guarda los datos básicos
-    
-    return token; // Opcional: devuelve el token si lo necesitas
-  } catch (error) {
-    throw error; // Simplemente relanza el error
-  }
-};
+      if (!response?.token) {
+        throw new Error('Registro fallido');
+      }
+
+      localStorage.setItem('token', response.token);
+      setToken(response.token);
+      setUser({
+        id: response.id,
+        usuario,
+        nombre
+      });
+
+      return response;
+    } catch (error) {
+      localStorage.removeItem('token');
+      setToken(null);
+      setUser(null);
+      throw error;
+    }
+  };
 
   const logout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem('token');
     setToken(null);
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider value={{
+      user,
+      token,
+      loading,
+      login,
+      register,
+      logout,
+      isAuthenticated: !!token
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth debe usarse dentro de un AuthProvider');
+  }
+  return context;
+};

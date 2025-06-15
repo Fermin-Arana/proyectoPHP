@@ -84,8 +84,7 @@ class Mazo {
                 'message' => "El usuario no está logueado"
             ];
         }
-
-        // Valido las cartas: sin duplicados y exactamente 5
+        
         if (count($cartas) !== count(array_unique($cartas))) {
             return [
                 'status' => 400,

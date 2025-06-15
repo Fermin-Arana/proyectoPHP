@@ -4,38 +4,34 @@ require_once __DIR__ .'/Conexion.php';
 require_once __DIR__ .'/Usuario.php';
 require_once __DIR__ .'/Mazo.php';
 require_once __DIR__ .'/Estadisticas.php';
+require_once __DIR__ . '/Cartas.php'; // Asegúrate de tener este archivo
 require_once __DIR__ . '/../vendor/autoload.php';
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
 use Tuupola\Middleware\CorsMiddleware;
-use Dotenv\Dotenv;
-
-header("Access-Control-Allow-Origin: http://localhost:5173");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Acces-Control-Allow-Credentials: true"); 
-
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
-$dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->load();
 
 $app = AppFactory::create();
-$app->addBodyParsingMiddleware(); 
 
+// 1. Middleware de parsing del body (PRIMERO)
+$app->addBodyParsingMiddleware();
+
+// 2. Configuración CORS optimizada (versión actualizada)
 $app->add(new CorsMiddleware([
-    "origin" => ["http://localhost:5173"], 
+    "origin" => ["http://localhost:5173"],
     "methods" => ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    "headers.allow" => ["Authorization", "Content-Type", "Accept"],
-    "headers.expose" => [],
+    "headers.allow" => ["Authorization", "Content-Type"],
+    "headers.expose" => ["Authorization"],
     "credentials" => true,
     "cache" => 0,
+    "error" => function ($request, $response, $arguments) {
+        return $response->withStatus(401)
+                       ->withHeader("Content-Type", "application/json")
+                       ->withJson(["error" => "CORS error"]);
+    }
 ]));
 
+// 3. Ruta OPTIONS global para preflight
 $app->options('/{routes:.+}', function ($request, $response, $args) {
     return $response;
 });
@@ -54,7 +50,7 @@ $app->get('/partida/jugadaServidor', function (Request $request, Response $respo
     return $response
         ->withStatus($resultado['status'])
         ->withHeader('Content-Type', 'application/json');
-}); //funciona
+});
 
 $app->post('/usuario/login', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
@@ -70,7 +66,7 @@ $app->post('/usuario/login', function (Request $request, Response $response) {
         ->withHeader('Content-Type', 'application/json');
 });
 
-$app->put('/usuarios/{usuario}', function (Request $request, Response $response, array $args) {//editar Usuario
+$app->put('/usuarios/{usuario}', function (Request $request, Response $response, array $args) {
     $usuarioId = $args['usuario'];
     $data = $request->getParsedBody();
 
@@ -90,8 +86,7 @@ $app->put('/usuarios/{usuario}', function (Request $request, Response $response,
     return $response
         ->withStatus($resultado['status'])
         ->withHeader('Content-Type', 'application/json');
-}); //funciona
-
+});
 
 $app->post('/usuario/register', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
@@ -107,9 +102,9 @@ $app->post('/usuario/register', function (Request $request, Response $response) 
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
-}); //funciona
+});
 
-$app->get('/usuarios/{usuario}', function (Request $request, Response $response, array $args) {//obtener info usuario logueado
+$app->get('/usuarios/{usuario}', function (Request $request, Response $response, array $args) {
     $usuario_id = (int) $args['usuario'];
 
     $token = str_replace('Bearer ', '', $request->getHeaderLine('Authorization'));
@@ -121,9 +116,9 @@ $app->get('/usuarios/{usuario}', function (Request $request, Response $response,
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
-});//funciona
+});
 
-$app->post('/partidas', function (Request $request, Response $response) {//Crear Partida
+$app->post('/partidas', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
     $mazo_id = $data['mazo_id'];
 
@@ -138,9 +133,8 @@ $app->post('/partidas', function (Request $request, Response $response) {//Crear
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
 });
-//funciona
 
-$app->post('/jugadas', function (Request $request, Response $response) {//Jugada Usuario
+$app->post('/jugadas', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
     $carta_id = $data['carta_id'];
     $partida_id = $data['partida_id'];
@@ -165,17 +159,15 @@ $app->post('/jugadas', function (Request $request, Response $response) {//Jugada
          $jsonResponse['partida_finalizada'] = $result['partida_finalizada'];
         }
 
-
         $response->getBody()->write(json_encode($jsonResponse));
     }
 
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
-});//funciona
+});
 
-
-$app->get('/usuarios/{usuario}/partidas/{partida}/cartas', function (Request $request, Response $response, array $args) {//Indicar Atributos
+$app->get('/usuarios/{usuario}/partidas/{partida}/cartas', function (Request $request, Response $response, array $args) {
     $usuarioId = $args['usuario'];
     $partidaId = $args['partida'];
 
@@ -189,7 +181,6 @@ $app->get('/usuarios/{usuario}/partidas/{partida}/cartas', function (Request $re
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
 });
- //funciona
 
 $app->get('/estadisticas/getEstadisticas', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
@@ -201,14 +192,12 @@ $app->get('/estadisticas/getEstadisticas', function (Request $request, Response 
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
-
-}); //funciona
+});
 
 $app->post('/mazos', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
     $token = str_replace('Bearer ', '', $request->getHeaderLine('Authorization'));
 
-    // validacion de los datos en el body
     if (
         !isset($data['cartas']) || 
         !is_array($data['cartas']) || 
@@ -241,8 +230,7 @@ $app->post('/mazos', function (Request $request, Response $response) {
         'data' => $resultado['data']
     ]));
     return $response->withHeader('Content-Type', 'application/json')->withStatus($resultado['status']);
-});//funciona
-
+});
 
 $app->delete('/mazos/{mazo}', function (Request $request, Response $response, array $args) {
     $mazo_id = $args['mazo'] ?? null;
@@ -272,9 +260,7 @@ $app->delete('/mazos/{mazo}', function (Request $request, Response $response, ar
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
     }
-}); //Funciona perfecto, borro un mazo y me tiro excepcion en el otro
-
-
+});
 
 $app->get('/usuarios/{usuario}/mazos', function (Request $request, Response $response, array $args) {
     $usuarioId = (int) $args['usuario'];
@@ -291,8 +277,7 @@ $app->get('/usuarios/{usuario}/mazos', function (Request $request, Response $res
     return $response
         ->withStatus($resultado['status'])
         ->withHeader('Content-Type', 'application/json');
-});//corregido
-
+});
 
 $app->put('/mazos/{mazo}', function (Request $request, Response $response, array $args) {
     $id_mazo = $args['mazo'] ?? '';
@@ -318,7 +303,7 @@ $app->put('/mazos/{mazo}', function (Request $request, Response $response, array
     return $response
         ->withStatus($resultado['status'])
         ->withHeader('Content-Type', 'application/json');
-}); //Funciona, recibe un id de mazo y edita unicamente el nombre
+});
 
 $app->get('/cartas', function (Request $request, Response $response) {
     $queryParams = $request->getQueryParams();
@@ -326,7 +311,7 @@ $app->get('/cartas', function (Request $request, Response $response) {
     $atributo = $queryParams['atributo'] ?? null;
     $nombre = $queryParams['nombre'] ?? null;
 
-    $mazo = new Mazo(); // o Carta si tenés una clase separada
+    $mazo = new Mazo();
     $resultado = $mazo->listarCartas($atributo, $nombre);
 
     $response->getBody()->write(json_encode([
@@ -337,11 +322,21 @@ $app->get('/cartas', function (Request $request, Response $response) {
     return $response
         ->withHeader('Content-Type', 'application/json')
         ->withStatus(200);
-});//corregido
+});
 
+$app->get('/cartasdisponibles', function (Request $request, Response $response) {
+    $cartas = new Cartas();
+    $resultado = $cartas->getCartas();
 
+    $response->getBody()->write(json_encode([
+        'status' => 200,
+        'cartas' => $resultado
+    ]));
 
-
+    return $response
+        ->withHeader('Content-Type', 'application/json')
+        ->withStatus(200);
+});
 
 $app->run();
 

@@ -1,0 +1,111 @@
+/* Mazo.css */
+.mazo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 120px); /* Mismo ajuste para header/footer */
+  padding: 20px;
+  background-color: #f5f5f5;
+}
+
+.tituloss{
+    color:black;
+}
+
+.mazo-card {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px; /* Un poco más ancho para la lista */
+  text-align: center;
+}
+
+.mazo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.form-input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4CAF50; /* Verde consistente */
+}
+
+.submit-button {
+  padding: 12px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.submit-button:hover {
+  background-color: #45a049; /* Verde oscuro al hover */
+}
+
+.error-message {
+  color: #ff3333;
+  margin-bottom: 15px;
+}
+
+/* Estilos para la lista de mazos */
+.mazo-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 25px;
+  text-align: left;
+}
+
+.mazo-item {
+  padding: 12px;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.2s;
+}
+
+.mazo-item:hover {
+  transform: translateX(5px);
+  border-left: 3px solid #4CAF50; /* Acento verde al hover */
+}
+
+/* Opcional: Botones para acciones (editar/eliminar) */
+.mazo-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.mazo-actions button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.edit-button {
+  background-color: #2196F3; /* Azul */
+  color: white;
+}
+
+.delete-button {
+  background-color: #f44336; /* Rojo */
+  color: white;
+}
