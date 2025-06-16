@@ -6,27 +6,47 @@ const Mazo = () => {
   const [nombreMazo, setNombreMazo] = useState('');
   const [mazos, setMazos] = useState([]);
   const [error, setError] = useState('');
-  const { user, token } = useAuth(); // Asegúrate de que useAuth devuelva { user, token }
+  const [loading, setLoading] = useState(false);
+  const { user, token } = useAuth();
 
-useEffect(() => {
-  const loadMazos = async () => {
-    try {
-      if (!token || !user?.id) {
-        console.log("Esperando token o user.id...");
-        return; 
+  useEffect(() => {
+    const loadMazos = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        
+        if (!token || !user?.id) {
+          console.log("Esperando token o user.id...");
+          return;
+        }
+        
+        const response = await getMazos(token, user.id);
+        
+        // Adaptación para la estructura de tu backend
+        if (response.status === 200) {
+          setMazos(response.data || []);
+        } else {
+          setError(response.message || "Error al cargar mazos");
+        }
+      } catch (err) {
+        console.error("Error completo:", err);
+        
+        if (err.status === 401) {
+          setError("Tu sesión ha expirado. Por favor inicia sesión nuevamente.");
+          // Aquí podrías redirigir al login o limpiar el contexto
+        } else if (err.status === 403) {
+          setError("No tienes permisos para ver estos mazos");
+        } else {
+          setError(err.message || "Error de conexión con el servidor");
+        }
+      } finally {
+        setLoading(false);
       }
-      
-      const mazosData = await getMazos(token, user.id);
-      setMazos(mazosData);
-    } catch (err) {
-      setError("Error al cargar mazos: " + err.message);
-      console.error("Error en loadMazos:", err);
-    }
-  };
-  loadMazos();
-}, [token, user?.id]); // Dependencia específica en user.id
+    };
+    
+    loadMazos();
+  }, [token, user?.id]);
 
-  // 2. Crear un nuevo mazo
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -41,12 +61,15 @@ useEffect(() => {
         usuario_id: user.id 
       });
 
-      const updatedMazos = await getMazos(token, user.id);
-      setMazos(updatedMazos);
-      setNombreMazo('');
+      // Recargar la lista después de crear
+      const updatedResponse = await getMazos(token, user.id);
+      if (updatedResponse.status === 200) {
+        setMazos(updatedResponse.data || []);
+        setNombreMazo('');
+      }
     } catch (err) {
-      setError("Error al crear mazo: " + err.message);
-      console.error("Error en handleSubmit:", err); // Debug
+      console.error("Error al crear mazo:", err);
+      setError(err.message || "Error al crear el mazo");
     }
   };
 
@@ -54,10 +77,11 @@ useEffect(() => {
     <div className="mazo-container">
       <div className="mazo-card">
         <h2 className="tituloss">Mis Mazos</h2>
+        
+        {loading && <p>Cargando mazos...</p>}
         {error && <p className="error-message">{error}</p>}
 
-        {/* Lista de mazos existentes */}
-        {mazos.length > 0 ? (
+        {!loading && mazos.length > 0 ? (
           <ul className="mazo-list">
             {mazos.map((mazo) => (
               <li key={mazo.id} className="mazo-item">
@@ -66,10 +90,9 @@ useEffect(() => {
             ))}
           </ul>
         ) : (
-          <p>No hay mazos creados aún.</p>
+          !loading && <p>No hay mazos creados aún.</p>
         )}
 
-        {/* Formulario para crear nuevo mazo */}
         <form onSubmit={handleSubmit} className="mazo-form">
           <input
             type="text"
@@ -79,7 +102,9 @@ useEffect(() => {
             required
             className="form-input"
           />
-          <button type="submit" className="submit-button">Crear Mazo</button>
+          <button type="submit" className="submit-button">
+            Crear Mazo
+          </button>
         </form>
       </div>
     </div>

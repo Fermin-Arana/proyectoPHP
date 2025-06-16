@@ -221,12 +221,13 @@ class Mazo {
         ];
     }
 
-    if ($usuarioLogueado['id'] != $usuarioId) {
-        return [
-            'status' => 403,
-            'message' => "No tiene permiso para ver los mazos de otro usuario"
-        ];
-    }
+if ($usuarioLogueado['id'] != $usuarioId) {
+    error_log("ID Mismatch - Logueado: {$usuarioLogueado['id']}, Solicitado: $usuarioId");
+    return [
+        'status' => 403,
+        'message' => "No tiene permiso para ver los mazos de otro usuario"
+    ];
+}
 
     $db = (new Conexion())->getDb();
     $query = "SELECT id, nombre FROM mazo WHERE usuario_id = :usuario_id";

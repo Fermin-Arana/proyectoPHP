@@ -61,24 +61,16 @@
   margin-bottom: 15px;
 }
 
-/* Estilos para la lista de mazos */
 .mazo-list {
   list-style: none;
   padding: 0;
-  margin-top: 25px;
-  text-align: left;
 }
 
 .mazo-item {
-  padding: 12px;
-  background-color: #f9f9f9;
-  border: 1px solid #eee;
-  border-radius: 5px;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: transform 0.2s;
+  padding: 8px;
+  margin: 5px 0;
+  background: #f8f9fa;
+  border-radius: 4px;
 }
 
 .mazo-item:hover {
@@ -108,4 +100,11 @@
 .delete-button {
   background-color: #f44336; /* Rojo */
   color: white;
+}
+
+.error-message {
+  color: #dc3545;
+  background: #f8d7da;
+  padding: 10px;
+  border-radius: 5px;
 }

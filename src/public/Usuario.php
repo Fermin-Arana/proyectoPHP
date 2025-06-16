@@ -215,18 +215,29 @@ use Firebase\JWT\JWT;
         }
 
         public function obtenerUsuarioPorToken($token) {
-            $db=(new Conexion())->getDb();
-            $query="SELECT * FROM usuario WHERE token= :token AND vencimiento_token > NOW()";
-            $stmt=$db->prepare($query);
-            $token = trim($token); //borra espacios
-            $stmt->bindParam(':token', $token);
-            $stmt->execute();
-            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if(!$usuario){
+            try {
+                $db = (new Conexion())->getDb();
+                $token = urldecode(trim($token));
+                
+                // Opción 1: Sin verificación de tiempo (para debug)
+                $query = "SELECT * FROM usuario WHERE token = :token";
+                
+                // Opción 2: Con verificación de tiempo (producción)
+                // $query = "SELECT * FROM usuario WHERE token = :token AND vencimiento_token > UTC_TIMESTAMP()";
+                
+                $stmt = $db->prepare($query);
+                $stmt->bindValue(':token', $token, PDO::PARAM_STR);
+                
+                if (!$stmt->execute()) {
+                    throw new Exception("Error en consulta SQL");
+                }
+                
+                return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+                
+            } catch (Exception $e) {
+                error_log("Error en obtenerUsuarioPorToken: " . $e->getMessage());
                 return null;
             }
-            return $usuario;
         }
         
 

@@ -1,29 +1,44 @@
+// src/services/apiMazos/apiMazo.js
+import api from '../api'; // Importa tu instancia de Axios
 
-import api from '../api.js'
-
-export const login = async (usuario, password) => {
-  const response = await api.post('/usuario/login', { usuario, password });
-  return response.data; 
-};
-
-export const getMazos = async (usuarioId) => {
+export const getMazos = async (token, usuarioId) => {
   try {
-    const response = await api.get(`/usuarios/${usuarioId}/mazos`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching mazos:', error.response?.data || error.message);
-    throw error; 
-  }
-};
-export const createMazo = async (nombre, cartas) => {
-  try {
-    const response = await api.post('/mazos', {
-      nombre,
-      cartas
+    const response = await api.get(`/usuarios/${usuarioId}/mazos`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     });
     return response.data;
   } catch (error) {
-    console.error('Error creating mazo:', error.response?.data || error.message);
-    throw new Error(error.response?.data?.message || 'Error al crear mazo');
+    if (error.response) {
+      throw {
+        status: error.response.status,
+        message: error.response.data?.message || 'Error del servidor'
+      };
+    } else {
+      throw {
+        status: 500,
+        message: 'Error de conexión'
+      };
+    }
+  }
+};
+
+export const createMazo = async (token, data) => {
+  try {
+    const response = await api.post('/mazos', data, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw {
+        status: error.response.status,
+        message: error.response.data?.message || 'Error al crear mazo'
+      };
+    }
+    throw error;
   }
 };
