@@ -46,7 +46,11 @@ $app->get('/partida/jugadaServidor', function (Request $request, Response $respo
     $mazo_id = $data['mazo_id'];
     $partida = new Partida();
     $resultado = $partida->jugadaServidor($mazo_id);
-    $response->getBody()->write(json_encode($resultado ['message']));
+
+    $response->getBody()->write(json_encode([
+        'status' => $resultado['status'],
+        'message' => $resultado['message']
+    ]));
     return $response
         ->withStatus($resultado['status'])
         ->withHeader('Content-Type', 'application/json');
@@ -60,11 +64,15 @@ $app->post('/usuario/login', function (Request $request, Response $response) {
     $usr = new Usuario();
     $result = $usr->login($usuario, $password);
 
-    $response->getBody()->write(json_encode($result['message']));
+    $response->getBody()->write(json_encode([
+        'status' => $result['status'],
+        'message' => $result['message']
+    ]));
+
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
-}); //funciona
+});//funciona
 
 $app->put('/usuarios/{usuario}', function (Request $request, Response $response, array $args) {//editar Usuario
     $usuarioId = $args['usuario'];
@@ -88,8 +96,7 @@ $app->put('/usuarios/{usuario}', function (Request $request, Response $response,
         ->withHeader('Content-Type', 'application/json');
 }); //funciona
 
-
-$app->post('/usuario/register', function (Request $request, Response $response) {
+$app->post('/usuario/registro', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
 
     $nombre = $data['nombre'] ?? '';
@@ -97,32 +104,52 @@ $app->post('/usuario/register', function (Request $request, Response $response) 
     $password = $data['password'] ?? '';
 
     $usr = new Usuario();
-    $result = $usr -> register($nombre, $usuario, $password);
+    $result = $usr->register($nombre, $usuario, $password);
 
-    $response -> getBody() ->write(json_encode($result['message']));
-    return $response
-        ->withStatus($result['status'])
-        ->withHeader('Content-Type', 'application/json');
-}); //funciona
+    $response->getBody()->write(json_encode([
+        'status' => $result['status'],
+        'message' => $result['message']
+    ]));
 
-$app->get('/usuarios/{usuario}', function (Request $request, Response $response, array $args) {//obtener info usuario logueado
-    $usuario_id = (int) $args['usuario'];
-
-    $token = str_replace('Bearer ', '', $request->getHeaderLine('Authorization'));
-
-    $usr = new Usuario();
-    $result = $usr->obtenerInformacion($token, $usuario_id);
-
-    $response->getBody()->write(json_encode($result['message']));
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
 });//funciona
 
-$app->post('/partidas', function (Request $request, Response $response) {//Crear Partida
-    $data = $request->getParsedBody();
-    $mazo_id = $data['mazo_id'];
+$app->get('/usuarios/{usuario}', function (Request $request, Response $response, array $args) { // Obtener info usuario logueado
+    $usuario_id = (int) $args['usuario'];
+    $token = str_replace('Bearer ', '', $request->getHeaderLine('Authorization'));
 
+    $usr = new Usuario();
+    $result = $usr->obtenerInformacion($token, $usuario_id);
+
+    $response->getBody()->write(json_encode([
+        'status' => $result['status'],
+        'data' => $result['message'] // o 'usuario' si querés ser más específico
+    ]));
+
+    return $response
+        ->withStatus($result['status'])
+        ->withHeader('Content-Type', 'application/json');
+});
+//funciona
+
+$app->post('/partidas', function (Request $request, Response $response) {
+    $data = $request->getParsedBody();
+
+    // Verificar que mazo_id exista y no esté vacío
+    if (!isset($data['mazo_id']) || empty($data['mazo_id'])) {
+        $error = [
+            'status' => 400,
+            'message' => 'El campo mazo_id es obligatorio.'
+        ];
+        $response->getBody()->write(json_encode($error));
+        return $response
+            ->withStatus(400)
+            ->withHeader('Content-Type', 'application/json');
+    }
+
+    $mazo_id = $data['mazo_id'];
     $token = str_replace('Bearer ', '', $request->getHeaderLine('Authorization'));
 
     $partida = new Partida();
@@ -133,11 +160,25 @@ $app->post('/partidas', function (Request $request, Response $response) {//Crear
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
-});
-//funciona
+});//funciona
 
-$app->post('/jugadas', function (Request $request, Response $response) {//Jugada Usuario
+$app->post('/jugadas', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
+
+    // Validación de campos obligatorios
+    if (!isset($data['carta_id']) || empty($data['carta_id']) ||
+        !isset($data['partida_id']) || empty($data['partida_id'])) {
+
+        $error = [
+            'status' => 400,
+            'message' => 'Los campos carta_id y partida_id son obligatorios.'
+        ];
+        $response->getBody()->write(json_encode($error));
+        return $response
+            ->withStatus(400)
+            ->withHeader('Content-Type', 'application/json');
+    }
+
     $carta_id = $data['carta_id'];
     $partida_id = $data['partida_id'];
     $token = str_replace('Bearer ', '', $request->getHeaderLine('Authorization'));
@@ -146,10 +187,14 @@ $app->post('/jugadas', function (Request $request, Response $response) {//Jugada
     $result = $partida->jugadaUsuario($carta_id, $partida_id, $token);
 
     if ($result['status'] !== 200) {
-        $response->getBody()->write(json_encode(['error' => $result['message']]));
+        $response->getBody()->write(json_encode([
+            'status' => $result['status'],
+            'message' => $result['message']
+        ]));
     } else {
         $jsonResponse = [
-            'resultado' => $result['message'],
+            'status' => 200,
+            'message' => $result['message'],
             'carta_servidor' => [
                 'ataque' => $result['carta_servidor']->ataque
             ],
@@ -158,9 +203,8 @@ $app->post('/jugadas', function (Request $request, Response $response) {//Jugada
         ];
 
         if (!empty($result['partida_finalizada'])) {
-         $jsonResponse['partida_finalizada'] = $result['partida_finalizada'];
+            $jsonResponse['partida_finalizada'] = $result['partida_finalizada'];
         }
-
 
         $response->getBody()->write(json_encode($jsonResponse));
     }
@@ -171,7 +215,7 @@ $app->post('/jugadas', function (Request $request, Response $response) {//Jugada
 });//funciona
 
 
-$app->get('/usuarios/{usuario}/partidas/{partida}/cartas', function (Request $request, Response $response, array $args) {//Indicar Atributos
+$app->get('/usuarios/{usuario}/partidas/{partida}/cartas', function (Request $request, Response $response, array $args) { // Indicar Atributos
     $usuarioId = $args['usuario'];
     $partidaId = $args['partida'];
 
@@ -180,20 +224,27 @@ $app->get('/usuarios/{usuario}/partidas/{partida}/cartas', function (Request $re
     $partida = new Partida();
     $result = $partida->indicarAtributos($usuarioId, $partidaId, $token);
 
-    $response->getBody()->write(json_encode($result['message']));
+    $response->getBody()->write(json_encode([
+        'status' => $result['status'],
+        'message' => $result['message']
+    ]));
+
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
-});
- //funciona
+});//funciona
 
 $app->get('/estadisticas/getEstadisticas', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
 
     $estadisticas = new Estadisticas();
+    $result = $estadisticas->getEstadisticas();
 
-    $result = $estadisticas -> getEstadisticas();
-    $response ->getBody() ->write(json_encode($result['message']));
+    $response->getBody()->write(json_encode([
+        'status' => $result['status'],
+        'message' => $result['message']
+    ]));
+
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
@@ -256,7 +307,9 @@ $app->delete('/mazos/{mazo}', function (Request $request, Response $response, ar
         $mazo = new Mazo();
         $resultado = $mazo->borrarMazo($mazo_id, $token);
 
+       
         $response->getBody()->write(json_encode([
+            'status' => $resultado['status'],
             'message' => $resultado['message']
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus($resultado['status']);
@@ -268,7 +321,7 @@ $app->delete('/mazos/{mazo}', function (Request $request, Response $response, ar
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
     }
-}); //Funciona perfecto, borro un mazo y me tiro excepcion en el otro
+});//Funciona perfecto, borro un mazo y me tiro excepcion en el otro
 
 
 
@@ -310,7 +363,10 @@ $app->put('/mazos/{mazo}', function (Request $request, Response $response, array
     $mazo = new Mazo();
     $resultado = $mazo->editarMazo($token,$nombre, $id_mazo);
 
-    $response->getBody()->write(json_encode([$resultado['message']]));
+    $response->getBody()->write(json_encode([
+        'status' => $resultado['status'],
+        'message' => $resultado['message']
+    ]));
     return $response
         ->withStatus($resultado['status'])
         ->withHeader('Content-Type', 'application/json');
@@ -322,7 +378,7 @@ $app->get('/cartas', function (Request $request, Response $response) {
     $atributo = $queryParams['atributo'] ?? null;
     $nombre = $queryParams['nombre'] ?? null;
 
-    $mazo = new Mazo(); // o Carta si tenés una clase separada
+    $mazo = new Mazo(); 
     $resultado = $mazo->listarCartas($atributo, $nombre);
 
     $response->getBody()->write(json_encode([
@@ -334,24 +390,6 @@ $app->get('/cartas', function (Request $request, Response $response) {
         ->withHeader('Content-Type', 'application/json')
         ->withStatus(200);
 });//corregido
-
-$app->get('/cartasdisponibles', function (Request $request, Response $response) {
-    $cartas = new Cartas();
-    $resultado = $cartas->getCartas();
-
-    $response->getBody()->write(json_encode([
-        'status' => 200,
-        'cartas' => $resultado
-    ]));
-
-    return $response
-        ->withHeader('Content-Type', 'application/json')
-        ->withStatus(200);
-});
-
-
-
-
 
 $app->run();
 
