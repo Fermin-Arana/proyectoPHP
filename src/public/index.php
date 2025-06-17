@@ -322,6 +322,39 @@ $app->delete('/mazos/{mazo}', function (Request $request, Response $response, ar
     }
 });//Funciona perfecto, borro un mazo y me tiro excepcion en el otro
 
+$app->get('/usuario/token', function (Request $request, Response $response) {
+    $authHeader = $request->getHeaderLine('Authorization');
+
+    if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
+        $response->getBody()->write(json_encode([
+            'status' => 400,
+            'message' => 'Token no provisto o malformado'
+        ]));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+
+    $token = trim(str_replace('Bearer ', '', $authHeader));
+
+    $usuarioModel = new Usuario();
+    $usuario = $usuarioModel->obtenerUsuarioPorToken($token);
+
+    if (!$usuario) {
+        $response->getBody()->write(json_encode([
+            'status' => 404,
+            'message' => 'Usuario no encontrado o token inválido'
+        ]));
+        return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
+    }
+
+    $response->getBody()->write(json_encode([
+        'status' => 200,
+        'message' => $usuario
+    ]));
+
+    return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
+});
+
+
 
 
 $app->get('/usuarios/{usuario}/mazos', function (Request $request, Response $response, array $args) {
@@ -333,7 +366,7 @@ $app->get('/usuarios/{usuario}/mazos', function (Request $request, Response $res
 
     $response->getBody()->write(json_encode([
         'status' => $resultado['status'],
-        'data' => $resultado['message']
+        'message' => $resultado['message']
     ]));
 
     return $response

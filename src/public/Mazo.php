@@ -236,14 +236,7 @@ if ($usuarioLogueado['id'] != $usuarioId) {
     $stmt->execute();
 
     $mazos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    if (!$mazos) {
-        return [
-            'status' => 200,
-            'message' => "El usuario no tiene ningún mazo"
-        ];
-    }
-
+    
     return [
         'status' => 200,
         'message' => $mazos

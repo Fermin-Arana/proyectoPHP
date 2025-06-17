@@ -9,61 +9,75 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Verificar token al iniciar
-  useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      // Aquí deberías validar el token con el backend
-      setToken(storedToken);
-      // Opcional: Obtener datos del usuario si el token es válido
-    }
-    setLoading(false);
-  }, []);
+ useEffect(() => {
+    const verifyStoredToken = async () => {
+      const storedToken = localStorage.getItem("token");
 
-  const login = async (usuario, password) => {
-    try {
-      const response = await loginService(usuario, password);
+      if (storedToken) {
+        try {
+          // ✅ Verificar el token con el backend
+          const response = await verifyToken(storedToken);
 
-      if (!response?.token) {
-        throw new Error('Respuesta inválida del servidor');
+          if (response.valid) {
+            setToken(storedToken);
+            setUser({
+              id: response.user.id,
+              usuario: response.user.usuario,
+              nombre: response.user.nombre
+            });
+          } else {
+            // Token inválido, limpiar
+            localStorage.removeItem('token');
+          }
+        } catch (error) {
+          console.error('Token inválido:', error);
+          localStorage.removeItem('token');
+        }
       }
 
-      localStorage.setItem('token', response.token);
-      setToken(response.token);
-      setUser({
-        id: response.id,
-        usuario: response.usuario,
-        nombre: response.nombre
-      });
-      
-      return response;
-    } catch (error) {
-      localStorage.removeItem('token');
-      setToken(null);
-      setUser(null);
-      throw new Error(error.message || 'Error durante el login');
-    }
-  };
+      setLoading(false);
+    };
+
+    verifyStoredToken();
+  }, []);
+const login = async (usuario, password) => {
+  try {
+    const response = await loginService(usuario, password);
+    const { token, id, usuario: nombre } = response.message;
+
+
+    
+    const user = {
+      id,
+      nombre
+    };
+
+    setToken(token);
+    setUser(user);
+
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    return response;
+
+  } catch (err) {
+    console.error('Error en login:', err);
+    throw err;
+  }
+};
+
 
   const register = async (nombre, usuario, password) => {
     try {
       const response = await registerService(nombre, usuario, password);
 
-      if (!response?.token) {
-        throw new Error('Registro fallido');
+      if (response.status !== 200) {
+        throw new Error(response.message || 'Registro fallido');
       }
 
-      localStorage.setItem('token', response.token);
-      setToken(response.token);
-      setUser({
-        id: response.id,
-        usuario,
-        nombre
-      });
-
-      return response;
+      return { success: true, message: response.message };
     } catch (error) {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       setToken(null);
       setUser(null);
       throw error;
@@ -72,6 +86,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setToken(null);
     setUser(null);
   };

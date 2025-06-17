@@ -16,12 +16,10 @@ const Login = () => {
   setError('');
   try {
     const result = await login(usuario, password);
-    // Redirige solo si no hubo error
-    if (result?.token) {
-      navigate('/home'); // Asegúrate que esta ruta existe
+    if (result.message.token) {
+      navigate('/home');
     }
   } catch (err) {
-    // Muestra el mensaje de error limpio
     setError(err.toString().replace('Error: ', ''));
   }
 };

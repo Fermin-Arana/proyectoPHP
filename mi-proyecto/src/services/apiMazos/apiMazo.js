@@ -2,14 +2,23 @@
 import api from '../api'; // Importa tu instancia de Axios
 
 export const getMazos = async (token, usuarioId) => {
+  console.log("HOLA");
   try {
+    console.log("URL:", `/usuarios/${usuarioId}/mazos`);
+  console.log("Token:", token);
+  console.log("Usuario ID:", usuarioId);
     const response = await api.get(`/usuarios/${usuarioId}/mazos`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    return response.data;
+    console.log("ta bien")
+    return {
+      status: response.status,
+      data: response.data?.message || [] 
+    };
   } catch (error) {
+    console.log("ta mal");
     if (error.response) {
       throw {
         status: error.response.status,
@@ -23,6 +32,8 @@ export const getMazos = async (token, usuarioId) => {
     }
   }
 };
+
+
 
 export const createMazo = async (token, data) => {
   try {
