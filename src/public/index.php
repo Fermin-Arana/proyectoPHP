@@ -73,6 +73,49 @@ $app->post('/usuario/login', function (Request $request, Response $response) {
         ->withHeader('Content-Type', 'application/json');
 });//funciona
 
+$app->get('/usuario/verify', function (Request $request, Response $response) {
+    $headers = $request->getHeaders();
+    $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
+    
+    if (!$authHeader || !isset($authHeader[0])) {
+        $response->getBody()->write(json_encode([
+            'valid' => false,
+            'message' => 'Token no proporcionado'
+        ]));
+        return $response
+            ->withStatus(401)
+            ->withHeader('Content-Type', 'application/json');
+    }
+    
+    // Extraer el token del header "Bearer TOKEN"
+    $token = str_replace('Bearer ', '', $authHeader[0]);
+    
+    $usr = new Usuario();
+    $usuarioData = $usr->obtenerUsuarioPorToken($token);
+    
+    if ($usuarioData) {
+        $response->getBody()->write(json_encode([
+            'valid' => true,
+            'user' => [
+                'id' => (int)$usuarioData['id'],
+                'usuario' => $usuarioData['usuario'],
+                'nombre' => $usuarioData['nombre']
+            ]
+        ]));
+        return $response
+            ->withStatus(200)
+            ->withHeader('Content-Type', 'application/json');
+    } else {
+        $response->getBody()->write(json_encode([
+            'valid' => false,
+            'message' => 'Token inválido o expirado'
+        ]));
+        return $response
+            ->withStatus(401)
+            ->withHeader('Content-Type', 'application/json');
+    }
+});
+
 $app->put('/usuarios/{usuario}', function (Request $request, Response $response, array $args) {//editar Usuario
     $usuarioId = $args['usuario'];
     $data = $request->getParsedBody();
@@ -322,39 +365,6 @@ $app->delete('/mazos/{mazo}', function (Request $request, Response $response, ar
     }
 });//Funciona perfecto, borro un mazo y me tiro excepcion en el otro
 
-$app->get('/usuario/token', function (Request $request, Response $response) {
-    $authHeader = $request->getHeaderLine('Authorization');
-
-    if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
-        $response->getBody()->write(json_encode([
-            'status' => 400,
-            'message' => 'Token no provisto o malformado'
-        ]));
-        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
-    }
-
-    $token = trim(str_replace('Bearer ', '', $authHeader));
-
-    $usuarioModel = new Usuario();
-    $usuario = $usuarioModel->obtenerUsuarioPorToken($token);
-
-    if (!$usuario) {
-        $response->getBody()->write(json_encode([
-            'status' => 404,
-            'message' => 'Usuario no encontrado o token inválido'
-        ]));
-        return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
-    }
-
-    $response->getBody()->write(json_encode([
-        'status' => 200,
-        'message' => $usuario
-    ]));
-
-    return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
-});
-
-
 
 
 $app->get('/usuarios/{usuario}/mazos', function (Request $request, Response $response, array $args) {
@@ -366,7 +376,7 @@ $app->get('/usuarios/{usuario}/mazos', function (Request $request, Response $res
 
     $response->getBody()->write(json_encode([
         'status' => $resultado['status'],
-        'message' => $resultado['message']
+        'data' => $resultado['message']
     ]));
 
     return $response

@@ -17,7 +17,6 @@ const handleSubmit = async (e) => {
 
   try {
     await register(nombre, usuario, password);
-    alert('Registro exitoso. Por favor inicia sesión.');
     navigate('/login'); 
   } catch (err) {
     setError(err.message); 

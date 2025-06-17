@@ -2,9 +2,9 @@ import api from '../api.js';
 
 export const verifyToken = async (token) => {
   try {
-    const response = await api.get('/usuario/token', {
+    const response = await api.get('/usuario/verify', {
       headers: {
-        'Authorization': 'Bearer ${token}'
+        'Authorization': `Bearer ${token}`
       }
     });
     return response.data;

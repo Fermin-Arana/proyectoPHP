@@ -1,6 +1,7 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { register as registerService } from '../../services/apiAuth/apiRegister.js';
 import { login as loginService } from '../../services/apiAuth/apiLogin.js';
+import { verifyToken } from '../../services/apiAuth/apiVerifyToken.js';
 
 const AuthContext = createContext();
 
@@ -8,16 +9,16 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
-
- useEffect(() => {
+  // Verificar token al iniciar
+  useEffect(() => {
     const verifyStoredToken = async () => {
       const storedToken = localStorage.getItem("token");
-
+      
       if (storedToken) {
         try {
-          // ✅ Verificar el token con el backend
+          // Verificar el token con el backend
           const response = await verifyToken(storedToken);
-
+          
           if (response.valid) {
             setToken(storedToken);
             setUser({
@@ -34,50 +35,57 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem('token');
         }
       }
-
+      
       setLoading(false);
     };
 
     verifyStoredToken();
   }, []);
-const login = async (usuario, password) => {
-  try {
-    const response = await loginService(usuario, password);
-    const { token, id, usuario: nombre } = response.message;
 
+  const login = async (usuario, password) => {
+    try {
+      const response = await loginService(usuario, password);
+      console.log("Respuesta del login:", response);
+      if (!response?.message.token) {
+        throw new Error('Respuesta inválida del servidor');
+      }
 
-    
-    const user = {
-      id,
-      nombre
-    };
-
-    setToken(token);
-    setUser(user);
-
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-    return response;
-
-  } catch (err) {
-    console.error('Error en login:', err);
-    throw err;
-  }
-};
-
+      localStorage.setItem('token', response.message.token);
+      setToken(response.message.token);
+      setUser({
+        id: response.message.id,
+        usuario: response.message.usuario,
+        nombre: response.message.nombre
+      });
+      
+      return response;
+    } catch (error) {
+      localStorage.removeItem('token');
+      setToken(null);
+      setUser(null);
+      throw new Error(error.message || 'Error durante el login');
+    }
+  };
 
   const register = async (nombre, usuario, password) => {
     try {
       const response = await registerService(nombre, usuario, password);
 
-      if (response.status !== 200) {
-        throw new Error(response.message || 'Registro fallido');
+      if (!response?.message.token) {
+        throw new Error('Registro fallido');
       }
 
-      return { success: true, message: response.message };
+      localStorage.setItem('token', response.message.token);
+      setToken(response.message.token);
+      setUser({
+        id: response.message.id,
+        usuario: response.message.usuario,
+        nombre: response.message.nombre
+      });
+
+      return response;
     } catch (error) {
       localStorage.removeItem('token');
-      localStorage.removeItem('user');
       setToken(null);
       setUser(null);
       throw error;
@@ -86,7 +94,6 @@ const login = async (usuario, password) => {
 
   const logout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
     setToken(null);
     setUser(null);
   };

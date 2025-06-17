@@ -1,25 +1,25 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx'; 
 import '../../assets/styles/Register.css'; 
 
 const Login = () => {
-  const [nombre, setNombre] = useState('');
   const [usuario, setUsuario] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth(); 
-
+  const { login } = useAuth();
   const handleSubmit = async (e) => {
   e.preventDefault();
   setError('');
   try {
     const result = await login(usuario, password);
-    if (result.message.token) {
-      navigate('/home');
+    if (result?.message.token) {
+      navigate('/home'); 
     }
   } catch (err) {
+    // Muestra el mensaje de error limpio
     setError(err.toString().replace('Error: ', ''));
   }
 };
