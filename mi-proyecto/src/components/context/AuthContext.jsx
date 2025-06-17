@@ -1,6 +1,7 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { register as registerService } from '../../services/apiAuth/apiRegister.js';
 import { login as loginService } from '../../services/apiAuth/apiLogin.js';
+import { verifyToken } from '../../services/apiAuth/apiVerifyToken.js';
 
 const AuthContext = createContext();
 
@@ -8,16 +9,37 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
-
   // Verificar token al iniciar
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      // Aquí deberías validar el token con el backend
-      setToken(storedToken);
-      // Opcional: Obtener datos del usuario si el token es válido
-    }
-    setLoading(false);
+    const verifyStoredToken = async () => {
+      const storedToken = localStorage.getItem("token");
+      
+      if (storedToken) {
+        try {
+          // Verificar el token con el backend
+          const response = await verifyToken(storedToken);
+          
+          if (response.valid) {
+            setToken(storedToken);
+            setUser({
+              id: response.user.id,
+              usuario: response.user.usuario,
+              nombre: response.user.nombre
+            });
+          } else {
+            // Token inválido, limpiar
+            localStorage.removeItem('token');
+          }
+        } catch (error) {
+          console.error('Token inválido:', error);
+          localStorage.removeItem('token');
+        }
+      }
+      
+      setLoading(false);
+    };
+
+    verifyStoredToken();
   }, []);
 
   const login = async (usuario, password) => {

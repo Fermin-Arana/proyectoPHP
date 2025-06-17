@@ -1,5 +1,6 @@
 <?php
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
     class Usuario{
         public function login($usuario, $password): array {
             $db = (new Conexion())->getDb();
@@ -212,18 +213,13 @@ use Firebase\JWT\JWT;
                 "status"=> 404,
                 "message"=> "ERROR"
             ];
-        }
-
-        public function obtenerUsuarioPorToken($token) {
+        }        public function obtenerUsuarioPorToken($token) {
             try {
                 $db = (new Conexion())->getDb();
                 $token = urldecode(trim($token));
                 
-                // Opción 1: Sin verificación de tiempo (para debug)
-                $query = "SELECT * FROM usuario WHERE token = :token";
-                
-                // Opción 2: Con verificación de tiempo (producción)
-                // $query = "SELECT * FROM usuario WHERE token = :token AND vencimiento_token > UTC_TIMESTAMP()";
+                // Verificar que el token existe y no ha expirado
+                $query = "SELECT * FROM usuario WHERE token = :token AND vencimiento_token > NOW()";
                 
                 $stmt = $db->prepare($query);
                 $stmt->bindValue(':token', $token, PDO::PARAM_STR);
@@ -232,7 +228,27 @@ use Firebase\JWT\JWT;
                     throw new Exception("Error en consulta SQL");
                 }
                 
-                return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+                $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$usuario) {
+                    return null;
+                }
+                
+                // Opcional: Verificar también el JWT con la biblioteca
+                try {
+                    $clave_secreta = $_ENV['JWT_SECRET'] ?? 'contraseña_default';
+                    $decoded = JWT::decode($token, new Firebase\JWT\Key($clave_secreta, 'HS256'));
+                    
+                    // Verificar que los datos del token coinciden con la BD
+                    if ($decoded->data->id != $usuario['id']) {
+                        return null;
+                    }
+                } catch (Exception $e) {
+                    error_log("Error al verificar JWT: " . $e->getMessage());
+                    return null;
+                }
+                
+                return $usuario;
                 
             } catch (Exception $e) {
                 error_log("Error en obtenerUsuarioPorToken: " . $e->getMessage());
