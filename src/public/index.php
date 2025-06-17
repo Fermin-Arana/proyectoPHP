@@ -4,7 +4,6 @@ require_once __DIR__ .'/Conexion.php';
 require_once __DIR__ .'/Usuario.php';
 require_once __DIR__ .'/Mazo.php';
 require_once __DIR__ .'/Estadisticas.php';
-require_once __DIR__ . '/Cartas.php'; // Asegúrate de tener este archivo
 require_once __DIR__ . '/../vendor/autoload.php';
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -18,7 +17,7 @@ $app->addBodyParsingMiddleware();
 
 // 2. Configuración CORS optimizada (versión actualizada)
 $app->add(new CorsMiddleware([
-    "origin" => ["http://localhost:5173"],
+    "origin" => ["http://localhost:5173", "http://localhost:5174"],
     "methods" => ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     "headers.allow" => ["Authorization", "Content-Type"],
     "headers.expose" => ["Authorization"],
