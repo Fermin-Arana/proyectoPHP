@@ -98,7 +98,7 @@ use Firebase\JWT\JWT;
 
         public function validarCampos($nombre,$usuario,$password){
             if (empty($nombre) || empty($usuario) || empty($password)){
-                echo "Los campos son obligatorios";
+                //echo "Los campos son obligatorios";
                 return false;
             }
             return true;

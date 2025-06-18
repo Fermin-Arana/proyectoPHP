@@ -46,6 +46,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await loginService(usuario, password);
       console.log("Respuesta del login:", response);
+      debugger;
       if (!response?.message.token) {
         throw new Error('Respuesta inválida del servidor');
       }

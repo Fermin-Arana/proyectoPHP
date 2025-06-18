@@ -8,6 +8,7 @@ export const register = async (nombre, usuario, password) => {
       usuario, 
       password 
     });
+    debugger;
     return response.data; 
   } catch (error) {
     throw error; 

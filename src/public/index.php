@@ -17,7 +17,7 @@ $app->addBodyParsingMiddleware();
 
 // 2. Configuración CORS optimizada (versión actualizada)
 $app->add(new CorsMiddleware([
-    "origin" => ["http://localhost:5173", "http://localhost:5174"],
+    "origin" => ["*"],
     "methods" => ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     "headers.allow" => ["Authorization", "Content-Type"],
     "headers.expose" => ["Authorization"],
