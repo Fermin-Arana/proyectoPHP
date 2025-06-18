@@ -1,5 +1,5 @@
 // src/services/apiMazos/apiMazo.js
-import api from '../api'; // Importa tu instancia de Axios
+import api from '../api'; 
 
 export const getMazos = async (token, usuarioId) => {
   try {

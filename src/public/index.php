@@ -148,7 +148,7 @@ $app->post('/usuario/registro', function (Request $request, Response $response) 
     $usr = new Usuario();
     $result = $usr->register($nombre, $usuario, $password);
 
-    $response->getBody()->write(json_encode([
+    $response->getBody()->write(string: json_encode(value: [
         'status' => $result['status'],
         'message' => $result['message']
     ]));
