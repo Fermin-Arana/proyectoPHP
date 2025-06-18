@@ -24,9 +24,7 @@ $app->add(new CorsMiddleware([
     "credentials" => true,
     "cache" => 0,
     "error" => function ($request, $response, $arguments) {
-        return $response->withStatus(401)
-                       ->withHeader("Content-Type", "application/json")
-                       ->withJson(["error" => "CORS error"]);
+        return $response->withStatus(403);  // Faltaba el return y el cierre de la función
     }
 ]));
 
@@ -140,6 +138,8 @@ $app->put('/usuarios/{usuario}', function (Request $request, Response $response,
 
 $app->post('/usuario/registro', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
+
+    error_log("Datos recibidos en /usuario/registro: " . json_encode($data));
 
     $nombre = $data['nombre'] ?? '';
     $usuario = $data['usuario'] ?? '';
