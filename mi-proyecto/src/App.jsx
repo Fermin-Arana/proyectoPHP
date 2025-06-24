@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import NavBarComponent from './components/General/NavBarComponent';
 import Home from './components/General/Home';
-import Mazos from './components/Mazos/Mazos';
+import Mazos from './components/mazos/Mazos';
 import FooterComponent from './components/General/FooterComponent';
 import TestConnection from './components/Test/testConnection';
 import HeaderComponent from './components/General/HeaderComponent';

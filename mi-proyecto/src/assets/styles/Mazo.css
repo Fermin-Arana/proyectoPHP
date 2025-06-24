@@ -108,3 +108,27 @@
   padding: 10px;
   border-radius: 5px;
 }
+
+.carta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #ccc;
+  padding: 8px;
+  margin: 5px 0;
+  border-radius: 5px;
+}
+
+.boton-seleccion {
+  background-color: #eee;
+  border: 1px solid #aaa;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.boton-seleccion.seleccionada {
+  background-color: #2ecc71;
+  color: white;
+  font-weight: bold;
+}

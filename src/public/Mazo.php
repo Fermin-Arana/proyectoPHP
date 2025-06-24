@@ -281,7 +281,7 @@ if ($usuarioLogueado['id'] != $usuarioId) {
         $db = (new Conexion())->getDb();
 
         
-        $query = "SELECT nombre, ataque, atributo_id FROM carta";
+        $query = "SELECT id, nombre, ataque, atributo_id FROM carta";
         $params = [];
         $conditions = [];
 
