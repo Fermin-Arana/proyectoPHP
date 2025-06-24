@@ -9,6 +9,8 @@ import { AuthProvider } from "./components/context/AuthContext.jsx";
 import Register from "./components/auth/Register.jsx";
 import Login from "./components/auth/Login.jsx";
 import Logout from "./components/auth/Logout.jsx";
+import EditUser from './components/auth/EditUser.jsx';
+
 
 export default function App() {
   return (
@@ -22,6 +24,7 @@ export default function App() {
           <Route path="/test-backend" element={<TestConnection />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/editar-usuario" element={<EditUser />} />
           <Route path="/logout" element={<Logout />} />
         </Routes>
         <FooterComponent />

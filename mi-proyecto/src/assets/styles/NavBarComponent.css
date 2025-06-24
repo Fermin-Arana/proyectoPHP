@@ -1,41 +1,5 @@
-/* Header blanco con logo y botones */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #fff;
-  padding: 20px 32px;      /* más espacio vertical y horizontal */
-  min-height: 80px;        
-  box-sizing: border-box;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.logo {
-  height: 48px;           
-  margin-right: 12px;
-}
-
-.logo-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.logo-text {
-  font-size: 24px;        /* tamaño de fuente más grande */
-  font-weight: bold;      /* texto en negrita */
-  color: #333;            /* color oscuro para contraste */
-}
-
-.header__buttons,
-.header__user {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
 .saludo-area {
-  background-color: #33333300; 
+  background-color: #33333300;
   padding: 24px;
   display: flex;
   justify-content: center;
@@ -46,19 +10,4 @@
   font-size: 20px;
   font-weight: 600;
   color: #f8f8f8;
-}
-
-.header__user button,
-.header__buttons button {
-  background: #000000;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.header__user button:hover,
-.header__buttons button:hover {
-  background: #8e24aa;
 }

@@ -1,25 +1,57 @@
+/* Header blanco con logo y botones */
 .header {
-  position:fixed;
-  display:flex;
-  align-items:center;
-  top:0;
-  gap:10px;
-  left:0;
-  padding:15px 20px;
-  width:100%;
-  background-color: white; 
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  height: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 20px 32px;      /* más espacio vertical y horizontal */
+  min-height: 80px;        
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.logo{
-  margin-right: 10px;
-  width:40px;
-  height:40px;
-  padding: 15px 20px;
+.logo {
+  height: 48px;           
+  margin-right: 12px;
 }
 
-.title{
-    color:blueviolet;
-    white-space: nowrap;
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-text {
+  font-size: 24px;        /* tamaño de fuente más grande */
+  font-weight: bold;      /* texto en negrita */
+  color: #333;            /* color oscuro para contraste */
+}
+
+.header__buttons,
+.header__user-buttons {
+  display: flex;
+  align-items: center;
+  gap: 20px; 
+}
+
+.header__user-buttons button,
+.header__buttons button {
+  background: #000000;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.header__user-buttons button:hover,
+.header__buttons button:hover {
+  background: #8e24aa;
+  transform: scale(1.05); /* un pequeño zoom al pasar el mouse */
 }

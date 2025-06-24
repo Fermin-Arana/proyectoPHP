@@ -1,0 +1,80 @@
+.editar-usuario {
+  max-width: 450px;
+  margin: 120px auto 40px;
+  padding: 32px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.editar-usuario h2 {
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 26px;
+  color: #6a1b9a;
+}
+
+.editar-usuario form > div {
+  margin-bottom: 20px;
+}
+
+.editar-usuario label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.editar-usuario input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 15px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.editar-usuario input:focus {
+  border-color: #8e24aa;
+  box-shadow: 0 0 6px #ba68c8;
+  outline: none;
+}
+
+.editar-usuario button {
+  width: 100%;
+  padding: 12px;
+  background-color: #6a1b9a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.editar-usuario button:hover {
+  background-color: #8e24aa;
+  transform: scale(1.02);
+}
+
+.errores {
+  margin-top: 16px;
+  background-color: #ffe6e6;
+  padding: 12px;
+  border: 1px solid #f44336;
+  border-radius: 6px;
+  color: #c62828;
+}
+
+.mensaje-exito {
+  margin-top: 16px;
+  background-color: #e8f5e9;
+  padding: 12px;
+  border: 1px solid #66bb6a;
+  border-radius: 6px;
+  color: #2e7d32;
+  text-align: center;
+  font-weight: 500;
+}

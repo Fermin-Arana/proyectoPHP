@@ -41,27 +41,11 @@
   color: #888;
 }
 
-.top-bar {
-  display: flex;
-  align-items: center;
-  padding: 10px 20px;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background-color: white;
-  z-index: 1000;
+body {
+  margin: 0;
+  padding: 0;
 }
 
-.navbar {
-  display: flex;
-  gap: 20px;
+main {
+  margin-top: 80px; 
 }
-
-.header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-left: auto; /* Esto empuja header a la derecha */
-}
-
