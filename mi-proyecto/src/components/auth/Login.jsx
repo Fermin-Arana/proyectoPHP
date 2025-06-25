@@ -19,8 +19,7 @@ const Login = () => {
       navigate('/home'); 
     }
   } catch (err) {
-    // Muestra el mensaje de error limpio
-    setError(err.toString().replace('Error: ', ''));
+    setError(err.message);
   }
 };
   return (

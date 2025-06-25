@@ -166,6 +166,7 @@ use Firebase\JWT\JWT;
             $db = (new Conexion())->getDb();
 
             if (!$this -> validarCampos($nombre,$usuario,$password)) {
+                error_log("✖️ Validación falló: campos obligatorios");
                 return [
                     'status' => 400,
                     'message' => 'Todos los campos son obligatorios.'
@@ -173,6 +174,9 @@ use Firebase\JWT\JWT;
             }
 
             if (!$this->verificarUsuario($usuario)) {
+                error_log("✖️ Validación falló: usuario inválido");
+
+
                 return [
                     'status' => 400,
                     'message' => 'El nombre de usuario debe tener entre 6 y 20 caracteres y ser alfanumérico.'
@@ -180,6 +184,8 @@ use Firebase\JWT\JWT;
             }
 
             if(!$this->verificarContraseña($password)){
+                error_log("✖️ Validación falló: contraseña inválida");
+
                 return [
                     'status'=> 400,
                     'message'=> "La clave debe ser de mas de 8 digitos y alfanumerica"
@@ -187,6 +193,8 @@ use Firebase\JWT\JWT;
             }
 
             if($this->verificarExistenciaUsuario($usuario)){
+                error_log("✖️ Validación falló: usuario ya existe");
+
                 return [
                     'status' => 400,
                     'message' => "Ese usuario ya existe"

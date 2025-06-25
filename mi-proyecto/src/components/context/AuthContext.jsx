@@ -64,34 +64,24 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('token');
       setToken(null);
       setUser(null);
-      throw new Error(error.message || 'Error durante el login');
+      const mensajeDelBackend = error.response?.data?.message;
+      throw new Error(mensajeDelBackend || error.message || 'Error durante el login');
     }
   };
 
   const register = async (nombre, usuario, password) => {
-    try {
-      const response = await registerService(nombre, usuario, password);
+  try {
+    const response = await registerService(nombre, usuario, password);
 
-      if (!response?.message.token) {
-        throw new Error('Registro fallido');
-      }
-
-      localStorage.setItem('token', response.message.token);
-      setToken(response.message.token);
-      setUser({
-        id: response.message.id,
-        usuario: response.message.usuario,
-        nombre: response.message.nombre
-      });
-
-      return response;
-    } catch (error) {
-      localStorage.removeItem('token');
-      setToken(null);
-      setUser(null);
-      throw error;
+    if (response.status !== 200) {
+      throw new Error(response.message || 'Registro fallido');
     }
-  };
+
+    return response;
+  } catch (error) {
+    throw error; // no limpies nada, solo reenviá el error
+  }
+};
 
   const logout = () => {
     localStorage.removeItem('token');

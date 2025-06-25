@@ -33,7 +33,7 @@ const EditUser = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); //Previene que el formulario recargue la página. Asi se mantiene el react sin refrescos.
     const erroresValidados = validar();
 
     if (erroresValidados.length > 0) {
