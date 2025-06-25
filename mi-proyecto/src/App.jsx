@@ -10,6 +10,7 @@ import Register from "./components/auth/Register.jsx";
 import Login from "./components/auth/Login.jsx";
 import Logout from "./components/auth/Logout.jsx";
 import EditUser from './components/auth/EditUser.jsx';
+import AccionesMazos from './components/mazos/AccionesMazos.jsx';
 
 
 export default function App() {
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/editar-usuario" element={<EditUser />} />
           <Route path="/logout" element={<Logout />} />
+          <Route path= "/mazos/:id" element={<AccionesMazos />} />
         </Routes>
         <FooterComponent />
       </AuthProvider>

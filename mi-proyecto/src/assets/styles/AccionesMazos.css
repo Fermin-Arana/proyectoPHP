@@ -1,0 +1,110 @@
+.acciones-mazos-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 120px);
+  padding: 20px;
+  background-color: #f5f5f5;
+}
+
+.acciones-mazos-card {
+  background: white;
+  padding: 32px 36px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+}
+
+.acciones-mazos-card h2 {
+  color: #4CAF50;
+  margin-bottom: 18px;
+}
+
+.acciones-mazos-card label {
+  display: block;
+  margin-bottom: 12px;
+  color: #333;
+  font-weight: 600;
+  text-align: left;
+}
+
+.acciones-mazos-card input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+  margin-bottom: 16px;
+  transition: border-color 0.3s;
+}
+
+.acciones-mazos-card input[type="text"]:focus {
+  border-color: #4CAF50;
+  outline: none;
+}
+
+.acciones-mazos-card button {
+  padding: 12px 24px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 18px;
+  transition: background 0.3s;
+}
+
+.acciones-mazos-card button:disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
+}
+
+.acciones-mazos-card button:not(:disabled):hover {
+  background-color: #388e3c;
+}
+
+.acciones-mazos-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px 0;
+}
+
+.acciones-mazos-card li {
+  background: #f8f9fa;
+  border-radius: 5px;
+  margin: 6px 0;
+  padding: 10px 0;
+  color: #333;
+  font-size: 17px;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(76,175,80,0.06);
+}
+
+.acciones-mazos-card h3 {
+  color: #333;
+  margin: 22px 0 10px 0;
+  font-size: 20px;
+}
+
+.acciones-mazos-card a {
+  color: #4CAF50;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.acciones-mazos-card a:hover {
+  color: #388e3c;
+}
+
+.acciones-mazos-card .error-message {
+  color: #ff3333;
+  background: #ffeaea;
+  border-radius: 5px;
+  padding: 8px;
+  margin-bottom: 12px;
+}

@@ -433,6 +433,18 @@ $app->get('/cartas', function (Request $request, Response $response) {
         ->withStatus(200);
 });//corregido
 
+$app->get('/mazos/{mazo_id}/cartas', function ($request, $response, $args) {
+    $mazo_id = (int)$args['mazo_id'];
+    $mazo = new Mazo();
+    $cartas = $mazo->getCartasMazo($mazo_id);
+
+    $response->getBody()->write(json_encode([
+        'status' => 200,
+        'data' => $cartas
+    ]));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
 $app->run();
 
 ?>
