@@ -1,0 +1,123 @@
+.estadisticas-lista {
+  margin-top: 18px;
+}
+
+.estadisticas-usuario {
+  margin-bottom: 18px;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background: #fafafa;
+  color: #222;
+  transition: box-shadow 0.2s, border 0.2s;
+}
+
+.estadisticas-usuario.destacado {
+  border: 2px solid #388e3c;
+  box-shadow: 0 0 12px #388e3c33;
+  background: #e8f5e9;
+}
+
+.estadisticas-usuario strong {
+  color: #1b5e20;
+  font-size: 1.1em;
+}
+
+.estadisticas-usuario ul {
+  margin: 8px 0 0 0;
+  padding-left: 18px;
+  color: #222;
+}
+
+.estadisticas-usuario li {
+  margin-bottom: 4px;
+  font-size: 1em;
+  color: #222;
+}
+
+.orden-activo {
+  background: #388e3c;
+  color: #fff;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+button {
+  background: #e0e0e0;
+  color: #222;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 5px;
+  margin-right: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+
+button:disabled {
+  background: #bdbdbd;
+  color: #fff;
+  cursor: not-allowed;
+}
+
+.paginado-estadisticas {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  font-weight: 500;
+}
+.estadisticas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.paginado-estadisticas {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  /* Elimina margin-top si lo tienes */
+  margin-top: 0;
+}
+
+/* Flex container para Home */
+.home-flex-container {
+  display: flex;
+  min-height: calc(100vh - 160px); /* Deja espacio para header y footer */
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding-top: 90px;   /* Espacio para el header fijo */
+  padding-bottom: 60px; /* Espacio para el footer fijo */
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.home-bienvenida {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px #0001;
+  padding: 32px 24px;
+  text-align: center;
+  color: #2e7d32;
+  min-width: 280px;
+  max-width: 350px;
+}
+
+@media (max-width: 900px) {
+  .home-flex-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .home-bienvenida {
+    margin-top: 24px;
+    max-width: 100%;
+  }
+}
