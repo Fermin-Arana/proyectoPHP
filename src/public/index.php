@@ -276,7 +276,7 @@ $app->get('/usuarios/{usuario}/partidas/{partida}/cartas', function (Request $re
         ->withHeader('Content-Type', 'application/json');
 });//funciona
 
-$app->get('/estadisticas/getEstadisticas', function (Request $request, Response $response) {
+$app->get('/estadisticas', function (Request $request, Response $response) {
     $data = $request->getParsedBody();
 
     $estadisticas = new Estadisticas();
