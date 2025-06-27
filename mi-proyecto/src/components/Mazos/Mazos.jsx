@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { getMazos, createMazo } from '../../services/apiMazos/apiMazo.js';
 import { getCartas } from '../../services/apiCartas/apiCartas.js';
+import { Link } from 'react-router-dom';
 
 const Mazo = () => {
   const [nombreMazo, setNombreMazo] = useState('');
@@ -49,16 +50,16 @@ const Mazo = () => {
     const loadCartas = async () => {
       try {
         const response = await getCartas();
-        console.log("Cartas recibidas:", response.cartas);
-        setCartas(response.cartas || []);
-      } catch (err) {
-        console.error(err);
-        setError("Error al cargar cartas");
-      }
-    };
+          console.log("Cartas recibidas:", response.cartas);
+          setCartas(response.cartas || []);
+        } catch (err) {
+          console.error(err);
+          setError("Error al cargar cartas");
+        }
+      };
 
-    loadCartas();
-  }, [mostrarCartas]);
+      loadCartas();
+    }, [mostrarCartas]);
 
   // Función para seleccionar/deseleccionar carta
   const toggleSeleccion = (idCarta) => {
@@ -125,9 +126,14 @@ const Mazo = () => {
         {!loading && mazos.length > 0 ? (
           <ul className="mazo-list">
             {mazos.map((mazo) => (
-              <li key={mazo.id} className="mazo-item">
-                {mazo.nombre}
-              </li>
+          <li key={mazo.id} className="mazo-item">
+            <Link
+              to={`/mazos/${mazo.id}`}
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >
+              {mazo.nombre}
+            </Link>
+          </li>
             ))}
           </ul>
         ) : (
