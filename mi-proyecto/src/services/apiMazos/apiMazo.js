@@ -43,6 +43,16 @@ export const createMazo = async (token, data) => {
   }
 };
 
+  export const getCartas = async (nombre = '', atributo = '') => {
+    const response = await api.get('/cartas', {
+      params: {
+        nombre,
+        atributo
+      }
+    });
+    return response.data;
+  };
+
 export const getCartasMazo = async (token, mazoId) => {
   try {
     const response = await api.get(`/mazos/${mazoId}/cartas`, {

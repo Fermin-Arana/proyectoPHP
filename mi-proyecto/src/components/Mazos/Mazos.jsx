@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { getMazos, createMazo } from '../../services/apiMazos/apiMazo.js';
-import { getCartas } from '../../services/apiCartas/apiCartas.js';
+import { getCartas, getMazos, createMazo } from '../../services/apiMazos/apiMazo.js';
 import { Link } from 'react-router-dom';
 
 const Mazo = () => {
@@ -15,6 +14,8 @@ const Mazo = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [mostrarCartas, setMostrarCartas] = useState(false);
+  const [filtroNombre, setFiltroNombre] = useState('');
+  const [filtroAtributo, setFiltroAtributo] = useState('');
 
   const { user, token } = useAuth();
 
@@ -129,7 +130,7 @@ const Mazo = () => {
           <li key={mazo.id} className="mazo-item">
             <Link
               to={`/mazos/${mazo.id}`}
-              style={{ textDecoration: 'none', color: 'inherit' }}
+              className="mazo-link"
             >
               {mazo.nombre}
             </Link>
@@ -145,11 +146,23 @@ const Mazo = () => {
           type="text"
           placeholder="Nombre del mazo"
           value={nombreMazo}
-          onChange={(e) => setNombreMazo(e.target.value)}
-          required
+          onChange={(e) => {
+            if (e.target.value.length <= 20) {
+              setNombreMazo(e.target.value);
+            }
+          }}
           className="form-input"
-          disabled={mostrarCartas} // para que no cambie mientras selecciona cartas
+          disabled={mostrarCartas}
         />
+        <p className="contador-caracteres">
+          {nombreMazo.length}/20 caracteres
+        </p>
+
+        {mazos.length >= 3 && (
+          <p className="error-message">
+             Ya alcanzaste el máximo de 3 mazos permitidos.
+          </p>
+        )}
         <button
           onClick={() => {
             if (!nombreMazo.trim()) {
@@ -159,15 +172,59 @@ const Mazo = () => {
             setError('');
             setMostrarCartas(true);
           }}
-          disabled={mostrarCartas}
+          disabled={mostrarCartas || mazos.length >= 3}
           className="submit-button"
         >
           Crear mazo
         </button>
 
+
         {/* Mostrar cartas para selección solo si mostrarCartas=true */}
         {mostrarCartas && (
           <>
+            <div className="filtros-cartas">
+              <input
+                type="text"
+                placeholder="Buscar por nombre"
+                value={filtroNombre}
+                onChange={(e) => setFiltroNombre(e.target.value)}
+                className="form-input"
+              />
+
+              <select
+                value={filtroAtributo}
+                onChange={(e) => setFiltroAtributo(e.target.value)}
+                className="form-input"
+              >
+                <option value="">Todos los atributos</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+              </select>
+
+              <button onClick={async () => {
+                try {
+                  const res = await getCartas(filtroNombre, filtroAtributo);
+                  setCartas(res.cartas || []);
+                } catch {
+                  setError("Error al aplicar filtros");
+                }
+              }} className="submit-button">
+                Buscar
+              </button>
+
+              <button onClick={async () => {
+                setFiltroNombre('');
+                setFiltroAtributo('');
+                const res = await getCartas();
+                setCartas(res.cartas || []);
+              }} className="submit-button">
+                Limpiar
+              </button>
+            </div>
             <div className="cartas-lista" style={{ maxHeight: '300px', overflowY: 'auto', marginTop: '1rem' }}>
               {cartas.map((carta) => {
                 const cartaId = carta.id;
@@ -178,21 +235,17 @@ const Mazo = () => {
                 const estaSeleccionada = seleccionadas.includes(cartaId);
 
                 return (
-                  <div
-                    key={cartaId}
-                    className={`carta-item`}
-                    onClick={() => toggleSeleccion(cartaId)}
-                  >
-                    <span>{carta.nombre}</span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleSeleccion(cartaId);
-                      }}
-                    >
-                      {estaSeleccionada ? '✓' : ''}
-                    </button>
+                  <div key={cartaId} className="carta-item">
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <strong>{carta.nombre}</strong>
+                      <span>Ataque: {carta.ataque}</span>
+                      <span>Atributo: {carta.atributo_id}</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={estaSeleccionada}
+                      onChange={() => toggleSeleccion(cartaId)}
+                    />
                   </div>
                 );
               })}

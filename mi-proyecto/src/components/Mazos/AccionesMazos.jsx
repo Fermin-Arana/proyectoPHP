@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { getCartasMazo, editarMazo, borrarMazo } from '../../services/apiMazos/apiMazo.js';
-import { getCartas } from '../../services/apiCartas/apiCartas.js';
+import { getCartas, getCartasMazo, editarMazo, borrarMazo } from '../../services/apiMazos/apiMazo.js';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import '../../assets/styles/AccionesMazos.css';
 
@@ -18,7 +17,7 @@ const AccionesMazos = () => {
 
   // Cargar datos del mazo y cartas
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = async () => {  
       setLoading(true);
       try {
         // Obtener cartas del mazo
@@ -108,6 +107,8 @@ const AccionesMazos = () => {
         <h3>Cartas en el mazo:</h3>
         <ul>
           {cartasMazo.map((carta) => {
+            
+            
             const cartaId = Number(carta.carta_id ?? carta.id);
             const cartaObj = todasCartas.find((c) => Number(c.id) === cartaId);
             return (

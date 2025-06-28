@@ -3,7 +3,7 @@ import api from '../api';
 
 export const getEstadisticas = async () => {
   try {
-    const response = await api.get(`/estadisticas/getEstadisticas`);
+    const response = await api.get(`/estadisticas`);
     return response.data;
   } catch (error) {
     if (error.response) {
