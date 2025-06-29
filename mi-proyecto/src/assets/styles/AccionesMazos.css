@@ -128,3 +128,32 @@
 .modal-contenido button {
   margin: 0 8px;
 }
+
+.submit-button {
+  background-color: #021a31;
+  color: #fff;    
+  padding: 10px 18px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+  background-color: #1565c0;
+}
+
+.submit-button:disabled,
+.submit-button.disabled-button {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.centered-button {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}

@@ -87,6 +87,15 @@ const AccionesMazos = () => {
           </button>
         </div>
 
+        <div className="centered-button">
+          <button
+            onClick={() => navigate(`/partida/${id}`)}
+            className="submit-button"
+          >
+            Jugar partida
+          </button>
+        </div>
+
         {mostrarConfirmacion && (
           <div className="modal-confirmacion">
             <div className="modal-contenido">

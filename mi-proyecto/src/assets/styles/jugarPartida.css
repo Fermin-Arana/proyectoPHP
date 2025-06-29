@@ -1,0 +1,128 @@
+.tablero-container * {
+  z-index: 1;
+}
+
+.tablero-container {
+  width: 100vw;
+  height: 100vh;
+  background-image: url('../../assets/images/tablero2.svg'); /* o el que uses */
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+h2, h3, h4 {
+  margin: 10px 0;
+  color: #fff;
+}
+
+.zona-jugador {
+  background-color: rgba(0, 255, 0, 0.1);
+}
+
+.zona-servidor {
+  background-color: rgba(255, 0, 0, 0.1);
+}
+
+.zona-centro {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.cartas-servidor, .cartas-jugador {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.carta-servidor {
+  width: 100px;
+  height: 140px;
+  background-color: #444;
+  border: 2px solid #888;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.carta {
+  width: 120px;
+  height: 160px;
+  background-color: #fff;
+  color: #000;
+  border: 2px solid #2196f3;
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+}
+
+.carta:hover {
+  transform: scale(1.05);
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.4);
+}
+
+.carta-servidor {
+  background-color: rgba(68, 68, 68, 0.85);
+}
+
+.carta {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+.resultado-ronda {
+  margin-top: 10px;
+  font-weight: bold;
+  font-size: 1rem;
+  color: #ffe082;
+}
+
+.zona-final {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.submit-button {
+  background-color: #4caf50;
+  color: #fff;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+  background-color: #43a047;
+}
+
+.error {
+  color: #ffbaba;
+  background: rgba(255, 0, 0, 0.3);
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.zona-servidor,
+.zona-centro,
+.zona-jugador {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
