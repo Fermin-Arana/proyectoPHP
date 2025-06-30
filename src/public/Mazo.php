@@ -3,7 +3,17 @@ class Mazo {
     public function getCartasMazo($mazo_id): array {
         try {
             $db = (new Conexion())->getDb();
-            $query = "SELECT carta_id, estado FROM mazo_carta WHERE mazo_id = :mazo_id";
+            $query = "
+            SELECT 
+                c.id AS carta_id,
+                c.nombre,
+                c.ataque,
+                c.atributo_id,
+                mc.estado
+            FROM mazo_carta mc
+            INNER JOIN carta c ON c.id = mc.carta_id
+            WHERE mc.mazo_id = :mazo_id
+            ";
             $stmt = $db->prepare($query);
             $stmt->bindValue(':mazo_id', $mazo_id, PDO::PARAM_INT);
             $stmt->execute();

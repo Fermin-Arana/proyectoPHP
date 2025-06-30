@@ -139,20 +139,16 @@
 
         }
 
-        private function getDatosCarta($carta_id){
+        private function getDatosCarta($carta_id) {
             $db = (new Conexion)->getDb();
-            
-            $query = "SELECT ataque, atributo_id FROM carta WHERE id = :carta_id";
+
+            $query = "SELECT id, nombre, ataque, atributo_id FROM carta WHERE id = :carta_id";
 
             $stmt = $db->prepare($query);
-
             $stmt->bindValue(':carta_id', $carta_id);
-
             $stmt->execute();
 
-            $result = $stmt->fetch(PDO::FETCH_OBJ);
-
-            return $result;
+            return $stmt->fetch(PDO::FETCH_OBJ);
         }
 
         private function getIdUsuario($id_partida): int {

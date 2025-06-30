@@ -62,12 +62,16 @@ const JugarPartida = () => {
     }
   };
 
-  const reiniciar = () => {
-    navigate(`/partida/${mazoId}`); // recarga desde 0
+    const reiniciar = async () => {
+    // Limpio todo para que el useEffect vuelva a ejecutar correctamente
+    setPartidaId(null);
+    setCartasUsuario([]);
+    setCartasServidor([]);
+    setCartasJugadas([]);
+    setResultadoRonda(null);
+    setPartidaFinalizada(null);
+    setError('');
   };
-
-  console.log('Cartas del usuario:', cartasUsuario); 
-  console.log('Cartas del servidor:', cartasServidor);
 
   return (
     <div className="tablero-container">
@@ -95,12 +99,18 @@ const JugarPartida = () => {
               <p>{cartasJugadas.at(-1).jugador.nombre}</p>
               <p>Ataque: {cartasJugadas.at(-1).jugador.ataque}</p>
             </div>
-            <div>
+            <div className="bloque-servidor">
               <h4>Carta del servidor</h4>
+              <p>{cartasJugadas.at(-1).servidor.nombre}</p>
               <p>Ataque: {cartasJugadas.at(-1).servidor.ataque}</p>
-            </div>
+          </div>
             <p className="resultado-ronda">
-              Resultado: {cartasJugadas.at(-1).resultado}
+              Resultado:{" "}
+              {cartasJugadas.at(-1).resultado === "ganaste"
+                ? "¡Ganaste esta ronda!"
+                : cartasJugadas.at(-1).resultado === "empate"
+                ? "Empate"
+                : "Perdiste esta ronda"}
             </p>
           </>
         )}
@@ -110,7 +120,8 @@ const JugarPartida = () => {
       <div className="zona-jugador">
         <h3>Tu mano</h3>
         <div className="cartas-jugador">
-          {cartasUsuario.map((carta) => (
+          {cartasUsuario.map((carta) => {
+          return (
             <div
               key={carta.carta_id}
               className="carta"
@@ -120,7 +131,8 @@ const JugarPartida = () => {
               <p>Ataque: {carta.ataque}</p>
               <p>Atributo: {carta.atributo_id}</p>
             </div>
-          ))}
+          );
+        })}
         </div>
       </div>
 

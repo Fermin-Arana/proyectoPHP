@@ -5,15 +5,16 @@
 .tablero-container {
   width: 100vw;
   height: 100vh;
-  background-image: url('../../assets/images/tablero2.svg'); /* o el que uses */
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  overflow-x: hidden;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 20px 20px 80px 20px; /* para dejar espacio sin permitir scroll */
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  background-image: url('../../assets/images/tablero2.svg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 h2, h3, h4 {
@@ -30,8 +31,29 @@ h2, h3, h4 {
 }
 
 .zona-centro {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start; /* 👈 esto es lo que lo sube */
+  justify-content: space-around;
+  gap: 20px;
+  padding: 12px 20px;
   background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  margin: 0 0 12px 0;
+  max-height: 130px;
+  overflow: hidden;
 }
+
+.zona-centro div {
+  min-width: 120px;
+  text-align: center;
+  color: #fff;
+}
+
+.zona-centro .bloque-servidor p {
+  color: #fff;
+}
+
 
 .cartas-servidor, .cartas-jugador {
   display: flex;
@@ -56,7 +78,8 @@ h2, h3, h4 {
 .carta {
   width: 120px;
   height: 160px;
-  background-color: #fff;
+  background-color: rgba(255, 255, 255, 0.95);
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
   color: #000;
   border: 2px solid #2196f3;
   border-radius: 8px;
@@ -66,6 +89,8 @@ h2, h3, h4 {
   cursor: pointer;
   transition: transform 0.2s ease;
   box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+  user-select: none;
+
 }
 
 .carta:hover {
@@ -82,9 +107,11 @@ h2, h3, h4 {
 }
 
 .resultado-ronda {
-  margin-top: 10px;
   font-weight: bold;
   font-size: 1rem;
+  padding: 8px;
+  border-radius: 6px;
+  background-color: rgba(0,0,0,0.4);
   color: #ffe082;
 }
 
@@ -117,7 +144,6 @@ h2, h3, h4 {
 }
 
 .zona-servidor,
-.zona-centro,
 .zona-jugador {
   flex: 1;
   width: 100%;
@@ -125,4 +151,8 @@ h2, h3, h4 {
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+.zona-centro {
+  flex: none;
 }
