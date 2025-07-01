@@ -142,13 +142,16 @@
         private function getDatosCarta($carta_id) {
             $db = (new Conexion)->getDb();
 
-            $query = "SELECT id, nombre, ataque, atributo_id FROM carta WHERE id = :carta_id";
-
+            $query = "SELECT c.id AS carta_id, c.nombre, c.ataque, c.atributo_id, a.nombre AS atributo
+                    FROM carta c
+                    JOIN atributo a ON c.atributo_id = a.id
+                    WHERE c.id = :carta_id";
             $stmt = $db->prepare($query);
             $stmt->bindValue(':carta_id', $carta_id);
             $stmt->execute();
 
-            return $stmt->fetch(PDO::FETCH_OBJ);
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            return (object) $data;
         }
 
         private function getIdUsuario($id_partida): int {
@@ -198,8 +201,31 @@
 
             // Jugada del servidor
             $id_carta_servidor = $this->jugadaServidor();
+            if (!isset($id_carta_servidor['status']) || $id_carta_servidor['status'] !== 200) {
+                return [
+                    'status' => 404,
+                    'message' => 'No hay cartas disponibles en el mazo del servidor.'
+                ];
+            }
+
             $cartaUsuario = $this->getDatosCarta($carta_id);
+            if (!$cartaUsuario || !isset($cartaUsuario->carta_id)) {
+                return [
+                    'status' => 500,
+                    'message' => 'No se pudo obtener la carta del servidor',
+                    'carta_servidor' => null
+                ];
+            }
+
             $cartaServidor = $this->getDatosCarta($id_carta_servidor['message']);
+            error_log("✅ getDatosCarta devolvió: " . json_encode($cartaServidor));
+            if (!$cartaServidor || !isset($cartaServidor->carta_id)) {
+                return [
+                    'status' => 500,
+                    'message' => 'No se pudo obtener la carta del servidor',
+                    'carta_servidor' => null
+                ];
+            }
 
             // Aplicar bonificación
             if ($this->ganaA($cartaUsuario->atributo_id, $cartaServidor->atributo_id)) {
@@ -250,7 +276,6 @@
 
                 $mensaje_final = "Partida finalizada. Resultado: $resultado_partida";
             }
-
             return [
                 'status' => 200,
                 'message' => $resultado_carta,

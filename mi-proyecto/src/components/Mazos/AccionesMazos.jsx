@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { getCartas, getCartasMazo, editarMazo, borrarMazo } from '../../services/apiMazos/apiMazo.js';
+import { getCartas, getCartasMazo, getMazos, editarMazo, borrarMazo } from '../../services/apiMazos/apiMazo.js';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import '../../assets/styles/AccionesMazos.css';
 
 const AccionesMazos = () => {
   const { id } = useParams(); // id del mazo desde la URL
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [cartasMazo, setCartasMazo] = useState([]);
   const [todasCartas, setTodasCartas] = useState([]);
+  const [mazosUsuario, setMazosUsuario] = useState([]);
   const [nombreMazo, setNombreMazo] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,24 +18,37 @@ const AccionesMazos = () => {
 
   // Cargar datos del mazo y cartas
   useEffect(() => {
-    const fetchData = async () => {  
+    if (!token || !user?.id) return;
+
+    const fetchData = async () => {
       setLoading(true);
       try {
-        // Obtener cartas del mazo
         const cartasMazoRes = await getCartasMazo(token, Number(id));
         setCartasMazo(cartasMazoRes.data || []);
 
-        // Obtener todas las cartas (para mostrar nombres)
         const todasRes = await getCartas();
         setTodasCartas(todasRes.cartas || todasRes || []);
+
+        const mazosRes = await getMazos(token, user.id);
+        setMazosUsuario(mazosRes.data || []);
       } catch (err) {
         setError('Error al cargar datos');
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
-  }, [id, token]);
+  }, [id, token, user?.id]);
+
+  const handleCrearMazo = () => {
+  if (mazosUsuario.length >= 3) {
+    alert('Ya alcanzaste el máximo de 3 mazos permitidos');
+    return;
+  }
+
+    navigate('/mazos/alta');
+  };
 
   // Guardar solo el nombre del mazo
   const guardarCambios = async () => {
@@ -59,6 +73,8 @@ const AccionesMazos = () => {
       setMostrarConfirmacion(false);
     }
   };
+
+  const puedeCrearMazo = mazosUsuario.length < 3;
 
   return (
     <div className="acciones-mazos-container">
@@ -130,6 +146,27 @@ const AccionesMazos = () => {
 
         <br />
         <Link to="/mazos">Volver a mis mazos</Link>
+        <div className="centered-button">
+          <button
+            onClick={() => {
+              if (!puedeCrearMazo) {
+                alert('Ya alcanzaste el máximo de 3 mazos permitidos.');
+                return;
+              }
+              navigate('/mazos'); 
+            }}
+            className="submit-button"
+            disabled={!puedeCrearMazo}
+          >
+            Crear nuevo mazo
+          </button>
+        </div>
+
+        {mazosUsuario.length >= 3 && (
+          <p style={{ marginTop: '10px', color: '#e53935', fontWeight: 500 }}>
+            Ya alcanzaste el límite de 3 mazos.
+          </p>
+        )}
       </div>
     </div>
   );

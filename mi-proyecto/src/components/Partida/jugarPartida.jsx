@@ -74,6 +74,9 @@ const JugarPartida = () => {
 
       try {
         const res = await jugarCarta(token, partidaId, carta.carta_id);
+        console.log("✅ Response completa de jugarCarta:", res);
+        console.log("🧪 carta_servidor completa:", res.carta_servidor);
+
         setCartasJugadas((prev) => [
           ...prev,
           {
