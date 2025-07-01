@@ -445,6 +445,26 @@ $app->get('/mazos/{mazo_id}/cartas', function ($request, $response, $args) {
     return $response->withHeader('Content-Type', 'application/json');
 });
 
+$app->get('/partida/reanudar', function (Request $request, Response $response) {
+    $token = str_replace('Bearer ', '', $request->getHeaderLine('Authorization'));
+
+    $partida = new Partida();
+    $resultado = $partida->reanudarPartida($token);
+
+    $response->getBody()->write(json_encode([
+        'status' => $resultado['status'],
+        'message' => $resultado['message'],
+        'id' => $resultado['id'] ?? null,
+        'MAZO' => $resultado['MAZO'] ?? null,
+        'MAZO_SERVIDOR' => $resultado['MAZO_SERVIDOR'] ?? null,
+        'jugadas' => $resultado['jugadas'] ?? null
+    ]));
+
+    return $response
+        ->withStatus($resultado['status'])
+        ->withHeader('Content-Type', 'application/json');
+});
+
 $app->run();
 
 ?>

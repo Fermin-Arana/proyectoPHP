@@ -40,3 +40,17 @@ export const jugarCarta = async (token, partida_id, carta_id) => {
     throw error.response?.data || { message: 'Error al jugar carta' };
   }
 };
+
+export const reanudarPartida = async (token) => {
+  try {
+    const res = await api.get('/partida/reanudar', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return res.data;
+  } catch (error) {
+    console.error('Error al reanudar partida:', error);
+    throw error.response?.data || { message: 'Error al reanudar partida' };
+  }
+};

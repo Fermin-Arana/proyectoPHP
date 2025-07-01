@@ -413,5 +413,53 @@
                 ];
             }
         }
+        public function reanudarPartida($token): array {
+            $usr = new Usuario();
+            $mazo = new Mazo();
+            $usuarioLogueado = $usr->obtenerUsuarioPorToken($token);
+
+            if (!$usuarioLogueado) {
+                return [
+                    'status' => 401,
+                    'message' => 'El usuario no está logueado'
+                ];
+            }
+
+            $db = (new Conexion())->getDb();
+            $query = "SELECT * FROM partida WHERE usuario_id = :usuario_id AND estado = 'en_curso'";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':usuario_id', $usuarioLogueado['id']);
+            $stmt->execute();
+            $partida = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$partida) {
+                return [
+                    'status' => 404,
+                    'message' => 'No hay partida activa para reanudar'
+                ];
+            }
+
+            // Obtener cartas en mano del usuario
+            $mazo_usuario = $mazo->getCartasMazo($partida['mazo_id']);
+
+            // Obtener cartas en mano del servidor (mazo_id = 1)
+            $mazo_servidor = $mazo->getCartasMazo(1);
+
+            // (Opcional) Obtener jugadas realizadas en la partida
+            $queryJugadas = "SELECT * FROM jugada WHERE partida_id = :partida_id";
+            $stmtJugadas = $db->prepare($queryJugadas);
+            $stmtJugadas->bindParam(':partida_id', $partida['id']);
+            $stmtJugadas->execute();
+            $jugadas = $stmtJugadas->fetchAll(PDO::FETCH_ASSOC);
+
+            return [
+                'status' => 200,
+                'message' => 'Partida reanudada',
+                'id' => $partida['id'],
+                'MAZO' => $mazo_usuario,
+                'MAZO_SERVIDOR' => $mazo_servidor,
+                'jugadas' => $jugadas
+            ];
+        }
 }
 ?>

@@ -8,10 +8,11 @@ class Mazo {
                 c.id AS carta_id,
                 c.nombre,
                 c.ataque,
-                c.atributo_id,
+                a.nombre AS atributo,
                 mc.estado
             FROM mazo_carta mc
             INNER JOIN carta c ON c.id = mc.carta_id
+            INNER JOIN atributo a ON c.atributo_id = a.id
             WHERE mc.mazo_id = :mazo_id
             ";
             $stmt = $db->prepare($query);
