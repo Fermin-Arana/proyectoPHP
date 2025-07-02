@@ -202,7 +202,7 @@ $app->post('/partidas', function (Request $request, Response $response) {
     return $response
         ->withStatus($result['status'])
         ->withHeader('Content-Type', 'application/json');
-});//funciona
+});//
 
 $app->post('/jugadas', function (Request $request, Response $response) {
     $data = $request->getParsedBody();

@@ -26,15 +26,21 @@ const JugarPartida = () => {
           setPartidaId(res.id);
           setCartasUsuario(
             res.MAZO
-              .filter((c) => c.estado === 'en_mano')
-              .map((c) => ({ ...c, estado: 'en_mano' }))
+              .filter((c) => c.estado === 'en_mazo')
+              .map((c) => ({ ...c, estado: 'en_mazo' }))
           );
-
-          // Obtener cartas del mazo del servidor (ID 1)
-          const resServidor = await getCartasMazo(token, 1);
-          setCartasServidor(resServidor.data || []);
+          console.log(res.MAZO);
+          try {
+            console.log("aaaaaaa");
+            const resServidor = await getCartasMazo(token, 1);
+            setCartasServidor(resServidor.data || []);
+          } catch (err) {
+            console.error("Error en getCartasMazo:", err);
+            setError("Error al obtener cartas del servidor");
+          }
+          setError(''); // <-- limpia cualquier error anterior si todo salió bien
         } catch (err) {
-          if (err.message?.includes("partida en curso")) {
+          if (err.message?.toLowerCase().includes("partida en curso")) {
             setError("Ya tenés una partida activa. Recargá o continuá desde donde la dejaste.");
           } else {
             setError(err.message || "Error al iniciar la partida");
@@ -142,15 +148,11 @@ const JugarPartida = () => {
           <>
             <div>
               <h4>Tu carta</h4>
-              <p>{cartasJugadas.at(-1)?.jugador?.nombre ?? '-'}</p>
               <p>Ataque: {cartasJugadas.at(-1)?.jugador?.ataque ?? '-'}</p>
-              <p>Atributo: {cartasJugadas.at(-1)?.jugador?.atributo ?? '-'}</p>
             </div>
             <div className="bloque-servidor">
               <h4>Carta del servidor</h4>
-              <p>{cartasJugadas.at(-1)?.servidor?.nombre ?? '-'}</p>
               <p>Ataque: {cartasJugadas.at(-1)?.servidor?.ataque ?? '-'}</p>
-              <p>Atributo: {cartasJugadas.at(-1)?.servidor?.atributo ?? '-'}</p>
             </div>
             <p className="resultado-ronda">
               Resultado:{" "}

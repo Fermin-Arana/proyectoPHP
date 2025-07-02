@@ -5,7 +5,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import '../../assets/styles/AccionesMazos.css';
 
 const AccionesMazos = () => {
-  const { id } = useParams(); // id del mazo desde la URL
+  const { id } = useParams(); 
   const { token, user } = useAuth();
   const [cartasMazo, setCartasMazo] = useState([]);
   const [todasCartas, setTodasCartas] = useState([]);
